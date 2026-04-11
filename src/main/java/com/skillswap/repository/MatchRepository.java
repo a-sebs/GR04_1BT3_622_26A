@@ -9,5 +9,6 @@ import java.util.Optional;
 public interface MatchRepository extends JpaRepository<Match, Long> {
 	List<Match> findByUsuarioSolicitanteIdOrderByCompatibilidadDesc(Long usuarioSolicitanteId);
 	Optional<Match> findByIdAndUsuarioSolicitanteId(Long id, Long usuarioSolicitanteId);
+	List<Match> findByUsuarioSolicitanteIdOrUsuarioMatchId(Long usuarioSolicitanteId, Long usuarioMatchId);
 	void deleteByUsuarioSolicitanteId(Long usuarioSolicitanteId);
 }

@@ -33,6 +33,10 @@
             </c:forEach>
         </ul>
     </c:if>
+
+    <p>
+        <a href="${pageContext.request.contextPath}/sesion/agenda/${matchSeleccionado.id}">Solicitar intercambio</a>
+    </p>
 </c:if>
 
 <p>

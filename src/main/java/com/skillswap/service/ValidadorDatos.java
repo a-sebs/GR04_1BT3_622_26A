@@ -13,6 +13,7 @@ public class ValidadorDatos {
 	private static final Pattern USERNAME_PATTERN = Pattern.compile("^[a-zA-Z0-9]+$");
 	private static final Pattern EMAIL_PATTERN = Pattern.compile("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$");
 	private static final Pattern FILTRO_HABILIDAD_PATTERN = Pattern.compile("^[a-zA-Z0-9\\s+#.-]{0,100}$");
+	private static final Pattern COMENTARIO_PATTERN = Pattern.compile("^[A-Za-z\\s]+$");
 	private final List<String> mensajesError = new ArrayList<>();
 	private final List<String> reglasActivas = new ArrayList<>();
 
@@ -75,6 +76,24 @@ public class ValidadorDatos {
 			}
 		}
 
+		if (datos.containsKey("puntuacion")) {
+			reglasActivas.add("puntuacion");
+			Object valor = datos.get("puntuacion");
+			String error = validarPuntuacion(valor);
+			if (error != null) {
+				mensajesError.add(error);
+			}
+		}
+
+		if (datos.containsKey("comentario")) {
+			reglasActivas.add("comentario");
+			String comentario = (String) datos.get("comentario");
+			String error = validarComentario(comentario);
+			if (error != null) {
+				mensajesError.add(error);
+			}
+		}
+
 		return mensajesError.isEmpty();
 	}
 
@@ -126,6 +145,26 @@ public class ValidadorDatos {
 		}
 		if (!FILTRO_HABILIDAD_PATTERN.matcher(filtro.trim()).matches()) {
 			return "El filtro de busqueda contiene caracteres no permitidos.";
+		}
+		return null;
+	}
+
+	private String validarPuntuacion(Object valor) {
+		if (!(valor instanceof Integer puntuacion)) {
+			return "La puntuacion debe ser numerica.";
+		}
+		if (puntuacion < 1 || puntuacion > 5) {
+			return "La puntuacion debe estar entre 1 y 5.";
+		}
+		return null;
+	}
+
+	private String validarComentario(String comentario) {
+		if (comentario == null || comentario.isBlank()) {
+			return "El comentario es obligatorio.";
+		}
+		if (!COMENTARIO_PATTERN.matcher(comentario.trim()).matches()) {
+			return "Los comentarios tienen caracteres alfabéticos y no contienen caracteres especiales";
 		}
 		return null;
 	}
