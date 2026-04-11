@@ -3,48 +3,65 @@
 <html>
 <head>
     <title>Perfil de Habilidades</title>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/skillswap.css" />
 </head>
 <body>
-<h1>Perfil de habilidades</h1>
-<p>Seleccione las habilidades que ofrece y las que desea aprender.</p>
+<div class="page-shell">
+    <div class="card">
+        <div class="card-header">
+            <h1>Perfil de habilidades</h1>
+            <p>Seleccione las habilidades que ofrece y las que desea aprender.</p>
+        </div>
 
-<c:if test="${not empty error}">
-    <p style="color: red;">${error}</p>
-</c:if>
-<c:if test="${not empty mensaje}">
-    <p style="color: green;">${mensaje}</p>
-</c:if>
+        <c:if test="${not empty error}">
+            <p class="message message-error">${error}</p>
+        </c:if>
+        <c:if test="${not empty mensaje}">
+            <p class="message message-success">${mensaje}</p>
+        </c:if>
 
-<form method="post">
-    <div>
-        <p>Habilidades que ofrece:</p>
-        <c:forEach items="${catalogoHabilidades}" var="habilidad">
-            <label>
-                <input type="checkbox" name="habilidadesOfrece" value="${habilidad}"
-                    <c:if test="${habilidadesOfreceSeleccionadas.contains(habilidad)}">checked</c:if> />
-                    ${habilidad}
-            </label><br/>
-        </c:forEach>
+        <form method="post">
+            <div class="grid-2">
+                <div class="checkbox-group panel">
+                    <strong class="legend">Habilidades que ofrece</strong>
+                    <div class="checkbox-grid">
+                        <c:forEach items="${catalogoHabilidades}" var="habilidad">
+                            <label class="checkbox-item">
+                                <input type="checkbox" name="habilidadesOfrece" value="${habilidad}"
+                                    <c:if test="${habilidadesOfreceSeleccionadas.contains(habilidad)}">checked</c:if> />
+                                <span>${habilidad}</span>
+                            </label>
+                        </c:forEach>
+                    </div>
+                </div>
+
+                <div class="checkbox-group panel">
+                    <strong class="legend">Habilidades que busca aprender</strong>
+                    <div class="checkbox-grid">
+                        <c:forEach items="${catalogoHabilidades}" var="habilidad">
+                            <label class="checkbox-item">
+                                <input type="checkbox" name="habilidadesBusca" value="${habilidad}"
+                                    <c:if test="${habilidadesBuscaSeleccionadas.contains(habilidad)}">checked</c:if> />
+                                <span>${habilidad}</span>
+                            </label>
+                        </c:forEach>
+                    </div>
+                </div>
+            </div>
+
+            <div class="actions">
+                <button type="submit" class="btn btn-primary" formaction="${pageContext.request.contextPath}/registro/perfil/${usuarioId}/agregar">Agregar perfil</button>
+                <button type="submit" class="btn btn-secondary" formaction="${pageContext.request.contextPath}/registro/perfil/${usuarioId}/editar">Guardar cambios</button>
+            </div>
+        </form>
+
+        <form method="post" action="${pageContext.request.contextPath}/registro/perfil/${usuarioId}/eliminar">
+            <div class="footer-actions">
+                <button type="submit" class="btn btn-danger">Eliminar perfil</button>
+            </div>
+        </form>
     </div>
-
-    <div>
-        <p>Habilidades que busca aprender:</p>
-        <c:forEach items="${catalogoHabilidades}" var="habilidad">
-            <label>
-                <input type="checkbox" name="habilidadesBusca" value="${habilidad}"
-                    <c:if test="${habilidadesBuscaSeleccionadas.contains(habilidad)}">checked</c:if> />
-                    ${habilidad}
-            </label><br/>
-        </c:forEach>
-    </div>
-
-    <button type="submit" formaction="${pageContext.request.contextPath}/registro/perfil/${usuarioId}/agregar">Agregar perfil</button>
-    <button type="submit" formaction="${pageContext.request.contextPath}/registro/perfil/${usuarioId}/editar">Guardar cambios (Editar)</button>
-</form>
-
-<form method="post" action="${pageContext.request.contextPath}/registro/perfil/${usuarioId}/eliminar">
-    <button type="submit">Eliminar perfil</button>
-</form>
+</div>
 
 </body>
 </html>
