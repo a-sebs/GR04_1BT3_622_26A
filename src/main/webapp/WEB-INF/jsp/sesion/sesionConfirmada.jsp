@@ -11,6 +11,10 @@
     <p style="color: green;">${mensaje}</p>
 </c:if>
 
+<p>
+    <a href="${pageContext.request.contextPath}/match/explorar">Explorar Matches</a>
+</p>
+
 <a href="${pageContext.request.contextPath}/login">Cerrar sesion</a>
 
 </body>

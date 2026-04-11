@@ -44,6 +44,9 @@ public class PerfilHabilidades {
 	@Column(name = "habilidad", nullable = false, length = 100)
 	private Set<String> habilidadesBusca = new LinkedHashSet<>();
 
+	@Column(nullable = false)
+	private Float reputacion = 0.0f;
+
 	public void agregar(Collection<String> ofrece, Collection<String> busca) {
 		Set<String> copiaOfrece = new LinkedHashSet<>();
 		Set<String> copiaBusca = new LinkedHashSet<>();
@@ -82,5 +85,14 @@ public class PerfilHabilidades {
 				destino.add(habilidad.trim());
 			}
 		}
+	}
+
+	public boolean coincideConFiltro(String filtro) {
+		if (filtro == null || filtro.isBlank()) {
+			return true;
+		}
+		String filtroNormalizado = filtro.trim().toLowerCase();
+		return habilidadesOfrece.stream().anyMatch(h -> h.toLowerCase().contains(filtroNormalizado))
+				|| habilidadesBusca.stream().anyMatch(h -> h.toLowerCase().contains(filtroNormalizado));
 	}
 }
