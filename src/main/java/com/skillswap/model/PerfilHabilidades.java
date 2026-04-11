@@ -1,0 +1,86 @@
+package com.skillswap.model;
+
+import jakarta.persistence.CollectionTable;
+import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.Set;
+
+@Entity
+@Table(name = "perfiles_habilidades")
+@Getter
+@Setter
+@NoArgsConstructor
+public class PerfilHabilidades {
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
+
+	@OneToOne(optional = false)
+	@JoinColumn(name = "usuario_id", nullable = false, unique = true)
+	private Usuario usuario;
+
+	@ElementCollection(fetch = FetchType.EAGER)
+	@CollectionTable(name = "perfil_habilidades_ofrece", joinColumns = @JoinColumn(name = "perfil_id"))
+	@Column(name = "habilidad", nullable = false, length = 100)
+	private Set<String> habilidadesOfrece = new LinkedHashSet<>();
+
+	@ElementCollection(fetch = FetchType.EAGER)
+	@CollectionTable(name = "perfil_habilidades_busca", joinColumns = @JoinColumn(name = "perfil_id"))
+	@Column(name = "habilidad", nullable = false, length = 100)
+	private Set<String> habilidadesBusca = new LinkedHashSet<>();
+
+	public void agregar(Collection<String> ofrece, Collection<String> busca) {
+		Set<String> copiaOfrece = new LinkedHashSet<>();
+		Set<String> copiaBusca = new LinkedHashSet<>();
+		agregarHabilidades(copiaOfrece, ofrece);
+		agregarHabilidades(copiaBusca, busca);
+
+		habilidadesOfrece.clear();
+		habilidadesBusca.clear();
+		habilidadesOfrece.addAll(copiaOfrece);
+		habilidadesBusca.addAll(copiaBusca);
+	}
+
+	public void agregar() {
+		agregar(habilidadesOfrece, habilidadesBusca);
+	}
+
+	public void editar(Collection<String> ofrece, Collection<String> busca) {
+		agregar(ofrece, busca);
+	}
+
+	public void editar() {
+		agregar(habilidadesOfrece, habilidadesBusca);
+	}
+
+	public void eliminar() {
+		habilidadesOfrece.clear();
+		habilidadesBusca.clear();
+	}
+
+	private void agregarHabilidades(Set<String> destino, Collection<String> origen) {
+		if (origen == null) {
+			return;
+		}
+		for (String habilidad : origen) {
+			if (habilidad != null && !habilidad.isBlank()) {
+				destino.add(habilidad.trim());
+			}
+		}
+	}
+}
