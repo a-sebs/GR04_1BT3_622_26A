@@ -1,20 +1,44 @@
 package com.skillswap.controller;
 
+import com.skillswap.model.Match;
+import com.skillswap.model.Sesion;
+import com.skillswap.repository.MatchRepository;
+import com.skillswap.repository.SesionRepository;
 import com.skillswap.repository.UsuarioRepository;
+import com.skillswap.service.ValidadorDisponibilidad;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.ZoneId;
+import java.util.Date;
+import java.util.List;
 
 @Controller
 public class SesionController {
 
 	private final UsuarioRepository usuarioRepository;
+	private final MatchRepository matchRepository;
+	private final SesionRepository sesionRepository;
+	private final ValidadorDisponibilidad validadorDisponibilidad;
 
-	public SesionController(UsuarioRepository usuarioRepository) {
+	public SesionController(UsuarioRepository usuarioRepository,
+						 MatchRepository matchRepository,
+						 SesionRepository sesionRepository,
+						 ValidadorDisponibilidad validadorDisponibilidad) {
 		this.usuarioRepository = usuarioRepository;
+		this.matchRepository = matchRepository;
+		this.sesionRepository = sesionRepository;
+		this.validadorDisponibilidad = validadorDisponibilidad;
 	}
 
 	@GetMapping("/")
@@ -36,12 +60,15 @@ public class SesionController {
 	@PostMapping("/login")
 	public String iniciarSesion(@RequestParam("nombre") String nombre,
 							 @RequestParam("password") String password,
+							 HttpSession session,
 							 RedirectAttributes redirectAttributes) {
-		boolean credencialesValidas = usuarioRepository.findByNombreIgnoreCaseAndPassword(nombre.trim(), password).isPresent();
-		if (!credencialesValidas) {
+		var usuario = usuarioRepository.findByNombreIgnoreCaseAndPassword(nombre.trim(), password).orElse(null);
+		if (usuario == null) {
 			redirectAttributes.addFlashAttribute("error", "Credenciales inválidas.");
 			return "redirect:/login";
 		}
+		session.setAttribute("usuarioId", usuario.getId());
+		session.setAttribute("usuarioNombre", usuario.getNombre());
 		redirectAttributes.addFlashAttribute("mensaje", "Bienvenido " + nombre.trim() + ".");
 		return "redirect:/sesion/confirmada";
 	}
@@ -49,5 +76,154 @@ public class SesionController {
 	@GetMapping("/sesion/confirmada")
 	public String sesionConfirmada() {
 		return "sesion/sesionConfirmada";
+	}
+
+	@GetMapping("/sesion/agenda/{matchId}")
+	public String agendarSesion(@PathVariable Long matchId, Model model, HttpSession session) {
+		Long usuarioId = obtenerUsuarioEnSesion(session);
+		if (usuarioId == null) {
+			return "redirect:/login";
+		}
+
+		Match match = matchRepository.findByIdAndUsuarioSolicitanteId(matchId, usuarioId).orElse(null);
+		if (match == null) {
+			return "redirect:/match/lista";
+		}
+
+		cargarAgenda(model, match, "", "", "", null);
+		return "sesion/pantallaAgenda";
+	}
+
+	@PostMapping("/sesion/agenda/{matchId}")
+	@Transactional
+	public String confirmarSesion(@PathVariable Long matchId,
+						  @RequestParam("fecha") String fecha,
+						  @RequestParam("hora") String hora,
+						  @RequestParam("mensaje") String mensaje,
+						  Model model,
+						  HttpSession session,
+						  RedirectAttributes redirectAttributes) {
+		Long usuarioId = obtenerUsuarioEnSesion(session);
+		if (usuarioId == null) {
+			return "redirect:/login";
+		}
+
+		Match match = matchRepository.findByIdAndUsuarioSolicitanteId(matchId, usuarioId).orElse(null);
+		if (match == null) {
+			return "redirect:/match/lista";
+		}
+
+		LocalDate fechaSeleccionada;
+		try {
+			fechaSeleccionada = LocalDate.parse(fecha);
+		} catch (Exception e) {
+			cargarAgenda(model, match, fecha, hora, mensaje, "La fecha seleccionada no es válida.");
+			return "sesion/pantallaAgenda";
+		}
+
+		if (!verificarDisponibilidad(match, fechaSeleccionada, hora)) {
+			cargarAgenda(model, match, fecha, hora, mensaje, "El horario no está disponible. Seleccione otra fecha u hora.");
+			return "sesion/pantallaAgenda";
+		}
+
+		Sesion nuevaSesion = new Sesion();
+		nuevaSesion.setIdMatch(String.valueOf(match.getId()));
+		nuevaSesion.setFecha(Date.from(fechaSeleccionada.atStartOfDay(ZoneId.systemDefault()).toInstant()));
+		nuevaSesion.setHora(hora);
+		nuevaSesion.agendar();
+
+		Sesion sesionGuardada = sesionRepository.save(nuevaSesion);
+
+		redirectAttributes.addFlashAttribute("mensaje",
+				"Solicitud enviada con éxito. La sesión quedó registrada en estado Pendiente.");
+		redirectAttributes.addFlashAttribute("notificacion",
+				"Se notificó a " + match.getUsuarioMatch().getNombre() + " sobre la nueva solicitud.");
+		redirectAttributes.addFlashAttribute("mensajeIntroduccion", mensaje);
+		return "redirect:/sesion/confirmada/" + sesionGuardada.getId();
+	}
+
+	@GetMapping("/sesion/confirmada/{sesionId}")
+	public String mostrarConfirmacion(@PathVariable String sesionId, Model model, HttpSession session) {
+		Long usuarioId = obtenerUsuarioEnSesion(session);
+		if (usuarioId == null) {
+			return "redirect:/login";
+		}
+
+		Sesion sesion = sesionRepository.findById(sesionId).orElse(null);
+		if (sesion == null) {
+			return "redirect:/match/lista";
+		}
+
+		Match match = obtenerMatchDesdeSesion(sesion);
+		if (match == null || !match.getUsuarioSolicitante().getId().equals(usuarioId)) {
+			return "redirect:/match/lista";
+		}
+
+		model.addAttribute("sesionAgendada", sesion);
+		model.addAttribute("destinatarioNombre", match.getUsuarioMatch().getNombre());
+		return "sesion/sesionConfirmada";
+	}
+
+	@PostMapping("/sesion/finalizar/{sesionId}")
+	@Transactional
+	public String finalizarSesion(@PathVariable String sesionId,
+						  HttpSession session,
+						  RedirectAttributes redirectAttributes) {
+		Long usuarioId = obtenerUsuarioEnSesion(session);
+		if (usuarioId == null) {
+			return "redirect:/login";
+		}
+
+		Sesion sesion = sesionRepository.findById(sesionId).orElse(null);
+		if (sesion == null) {
+			return "redirect:/match/lista";
+		}
+
+		Match match = obtenerMatchDesdeSesion(sesion);
+		if (match == null || !match.getUsuarioSolicitante().getId().equals(usuarioId)) {
+			return "redirect:/match/lista";
+		}
+
+		sesion.finalizar();
+		sesionRepository.save(sesion);
+		redirectAttributes.addFlashAttribute("mensaje", "Sesion finalizada correctamente.");
+		return "redirect:/sesion/confirmada/" + sesionId;
+	}
+
+	public boolean verificarDisponibilidad(Match match, LocalDate fecha, String hora) {
+		return validadorDisponibilidad.verificar(
+				match.getUsuarioSolicitante().getId(),
+				match.getUsuarioMatch().getId(),
+				fecha,
+				hora
+		);
+	}
+
+	private void cargarAgenda(Model model, Match match, String fecha, String hora, String mensaje, String error) {
+		List<LocalDateTime> horarios = validadorDisponibilidad.obtenerHorarios(match.getUsuarioMatch().getId());
+		DateTimeFormatter formato = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+		model.addAttribute("matchSeleccionado", match);
+		model.addAttribute("fecha", fecha);
+		model.addAttribute("hora", hora);
+		model.addAttribute("mensajeTexto", mensaje);
+		model.addAttribute("error", error);
+		model.addAttribute("horariosOcupados", horarios.stream().map(h -> h.format(formato)).toList());
+	}
+
+	private Long obtenerUsuarioEnSesion(HttpSession session) {
+		Object usuarioId = session.getAttribute("usuarioId");
+		if (usuarioId instanceof Number valorNumerico) {
+			return valorNumerico.longValue();
+		}
+		return null;
+	}
+
+	private Match obtenerMatchDesdeSesion(Sesion sesion) {
+		try {
+			long idMatch = Long.parseLong(sesion.getIdMatch());
+			return matchRepository.findById(idMatch).orElse(null);
+		} catch (NumberFormatException e) {
+			return null;
+		}
 	}
 }

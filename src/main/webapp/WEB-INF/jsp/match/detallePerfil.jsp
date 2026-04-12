@@ -1,36 +1,47 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <html>
 <head>
-    <title>Detalle de perfil</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/skillswap.css" />
+    <title>Detalle del Perfil</title>
 </head>
 <body>
-<div class="page-shell">
-    <div class="card">
-        <div class="card-header">
-            <h1>Detalle de perfil</h1>
-            <p>Resumen visual del perfil seleccionado dentro de SkillSwap.</p>
-        </div>
+<h1>Detalle del Perfil</h1>
 
-        <div class="summary-grid">
-            <div class="summary-card">
-                <strong>Habilidades que ofrece</strong>
-                <span class="muted">Aquí se mostrarán las habilidades disponibles del usuario.</span>
-            </div>
-            <div class="summary-card">
-                <strong>Habilidades que busca</strong>
-                <span class="muted">Aquí se mostrarán las habilidades que desea aprender.</span>
-            </div>
-        </div>
+<c:if test="${empty matchSeleccionado}">
+    <p>No se encontró el match solicitado.</p>
+</c:if>
 
-        <div class="empty-state">
-            La información detallada se renderizará cuando el controlador envíe los datos del perfil.
-        </div>
+<c:if test="${not empty matchSeleccionado}">
+    <p><strong>Usuario:</strong> ${matchSeleccionado.usuarioMatch.nombre}</p>
+    <p><strong>Correo:</strong> ${matchSeleccionado.usuarioMatch.correo}</p>
+    <p><strong>Compatibilidad:</strong> ${matchSeleccionado.compatibilidad}</p>
 
-        <div class="footer-actions">
-            <a class="inline-link" href="${pageContext.request.contextPath}/login">Volver al inicio</a>
-        </div>
-    </div>
-</div>
+    <c:if test="${not empty perfilDetalle}">
+        <p><strong>Reputación:</strong> ${perfilDetalle.reputacion}</p>
+
+        <p><strong>Habilidades que ofrece:</strong></p>
+        <ul>
+            <c:forEach items="${perfilDetalle.habilidadesOfrece}" var="habilidad">
+                <li>${habilidad}</li>
+            </c:forEach>
+        </ul>
+
+        <p><strong>Habilidades que desea aprender:</strong></p>
+        <ul>
+            <c:forEach items="${perfilDetalle.habilidadesBusca}" var="habilidad">
+                <li>${habilidad}</li>
+            </c:forEach>
+        </ul>
+    </c:if>
+
+    <p>
+        <a href="${pageContext.request.contextPath}/sesion/agenda/${matchSeleccionado.id}">Solicitar intercambio</a>
+    </p>
+</c:if>
+
+<p>
+    <a href="${pageContext.request.contextPath}/match/lista">Volver a la lista de matches</a>
+</p>
+
 </body>
 </html>

@@ -1,25 +1,32 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <html>
 <head>
-    <title>Búsqueda de matches</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/skillswap.css" />
+    <title>Explorar Matches</title>
 </head>
 <body>
-<div class="page-shell">
-    <div class="card">
-        <div class="card-header">
-            <h1>Buscar matches</h1>
-            <p>Encuentra personas con habilidades complementarias dentro de SkillSwap.</p>
-        </div>
+<h1>Explorar Matches</h1>
+<p>Encuentra usuarios con coincidencias entre habilidades para aprender y enseñar.</p>
 
-        <div class="empty-state">
-            Aquí se mostrará el panel de búsqueda cuando el controlador envíe los criterios y resultados.
-        </div>
+<c:if test="${not empty error}">
+    <p style="color: red;">${error}</p>
+</c:if>
 
-        <div class="footer-actions">
-            <a class="inline-link" href="${pageContext.request.contextPath}/login">Volver al inicio</a>
-        </div>
+<form method="post" action="${pageContext.request.contextPath}/match/buscar">
+    <div>
+        <label for="filtroHabilidad">Filtro avanzado por habilidad (opcional):</label>
+        <input id="filtroHabilidad" name="filtroHabilidad" type="text" value="${filtroHabilidad}" />
     </div>
-</div>
+
+    <p>Catálogo de habilidades disponibles:</p>
+    <ul>
+        <c:forEach items="${catalogoHabilidades}" var="habilidad">
+            <li>${habilidad}</li>
+        </c:forEach>
+    </ul>
+
+    <button type="submit">Buscar matches</button>
+</form>
+
 </body>
 </html>
