@@ -54,13 +54,14 @@ public class MatchController {
 			return "redirect:/registro/perfil/" + usuarioId;
 		}
 
-		cargarDatosBusqueda(model, usuarioId, "");
+		cargarDatosBusqueda(model, usuarioId, "", "");
 		return "match/pantallaBusqueda";
 	}
 
 	@PostMapping("/buscar")
 	@Transactional
 	public String buscarMatches(@RequestParam(value = "filtroHabilidad", required = false) String filtroHabilidad,
+							  @RequestParam(value = "filtroNombreUsuario", required = false) String filtroNombreUsuario,
 							  Model model,
 							  HttpSession session) {
 		Long usuarioId = obtenerUsuarioEnSesion(session);
@@ -69,14 +70,15 @@ public class MatchController {
 		}
 
 		if (!validadorDatos.validar(Map.of("filtroHabilidad", filtroHabilidad == null ? "" : filtroHabilidad))) {
-			cargarDatosBusqueda(model, usuarioId, filtroHabilidad);
+			cargarDatosBusqueda(model, usuarioId, filtroHabilidad, filtroNombreUsuario);
 			model.addAttribute("error", validadorDatos.getMensajeError().getFirst());
 			return "match/pantallaBusqueda";
 		}
 
-		List<Match> resultados = calcularCompatibilidad(usuarioId, filtroHabilidad);
+		List<Match> resultados = calcularCompatibilidad(usuarioId, filtroHabilidad, filtroNombreUsuario);
 		model.addAttribute("matches", resultados);
 		model.addAttribute("filtroHabilidad", filtroHabilidad == null ? "" : filtroHabilidad);
+		model.addAttribute("filtroNombreUsuario", filtroNombreUsuario == null ? "" : filtroNombreUsuario);
 		if (resultados.isEmpty()) {
 			model.addAttribute("mensaje", "No se encontraron matches con los criterios ingresados.");
 		}
@@ -117,7 +119,7 @@ public class MatchController {
 		return "match/detallePerfil";
 	}
 
-	private List<Match> calcularCompatibilidad(Long usuarioId, String filtroHabilidad) {
+	private List<Match> calcularCompatibilidad(Long usuarioId, String filtroHabilidad, String filtroNombreUsuario) {
 		PerfilHabilidades perfilActual = perfilHabilidadesRepository.findByUsuarioId(usuarioId)
 				.orElseThrow(() -> new IllegalStateException("No existe perfil para el usuario en sesion."));
 
@@ -125,6 +127,7 @@ public class MatchController {
 				.filter(perfil -> perfil.getUsuario() != null)
 				.filter(perfil -> perfil.getUsuario().getId() != null)
 				.filter(perfil -> !perfil.getUsuario().getId().equals(usuarioId))
+				.filter(perfil -> coincideConNombreUsuario(perfil, filtroNombreUsuario))
 				.toList();
 		List<AlgoritmoMatching.ResultadoCompatibilidad> puntajes = algoritmoMatching
 				.calcularCompatibilidades(perfilActual, candidatos, filtroHabilidad);
@@ -144,10 +147,29 @@ public class MatchController {
 		return matchRepository.findByUsuarioSolicitanteIdOrderByCompatibilidadDesc(usuarioId);
 	}
 
-	private void cargarDatosBusqueda(Model model, Long usuarioId, String filtro) {
+	private void cargarDatosBusqueda(Model model, Long usuarioId, String filtro, String filtroNombreUsuario) {
 		model.addAttribute("usuarioId", usuarioId);
 		model.addAttribute("catalogoHabilidades", CATALOGO_HABILIDADES);
 		model.addAttribute("filtroHabilidad", filtro == null ? "" : filtro);
+		model.addAttribute("filtroNombreUsuario", filtroNombreUsuario == null ? "" : filtroNombreUsuario);
+		model.addAttribute("usuariosDisponibles", perfilHabilidadesRepository.findByUsuarioIdNot(usuarioId).stream()
+				.filter(perfil -> perfil.getUsuario() != null)
+				.map(perfil -> perfil.getUsuario().getNombre())
+				.filter(nombre -> nombre != null && !nombre.isBlank())
+				.distinct()
+				.sorted(String.CASE_INSENSITIVE_ORDER)
+				.toList());
+	}
+
+	private boolean coincideConNombreUsuario(PerfilHabilidades perfil, String filtroNombreUsuario) {
+		if (filtroNombreUsuario == null || filtroNombreUsuario.isBlank()) {
+			return true;
+		}
+		if (perfil == null || perfil.getUsuario() == null || perfil.getUsuario().getNombre() == null) {
+			return false;
+		}
+		String filtroNormalizado = filtroNombreUsuario.trim().toLowerCase();
+		return perfil.getUsuario().getNombre().toLowerCase().contains(filtroNormalizado);
 	}
 
 	private Long obtenerUsuarioEnSesion(HttpSession session) {

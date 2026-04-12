@@ -3,30 +3,41 @@
 <html>
 <head>
     <title>Resultado de Calificación</title>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/skillswap.css" />
 </head>
 <body>
-<h1>Calificación registrada</h1>
+<div class="page-shell">
+    <div class="card compact">
+        <div class="card-header">
+            <h1>Calificación registrada</h1>
+            <p>Tu evaluación se guardó correctamente.</p>
+        </div>
 
-<c:if test="${not empty mensaje}">
-    <p style="color: green;">${mensaje}</p>
-</c:if>
+        <c:if test="${not empty mensaje}">
+            <p class="message message-success">${mensaje}</p>
+        </c:if>
 
-<c:if test="${not empty calificacion}">
-    <p><strong>ID calificación:</strong> ${calificacion.id}</p>
-    <p><strong>ID sesión:</strong> ${calificacion.idSesion}</p>
-    <p><strong>Puntuación:</strong> ${calificacion.puntuacion}</p>
-    <p><strong>Comentario:</strong> ${calificacion.comentario}</p>
-    <p><strong>Usuario evaluado:</strong> ${idUsuarioEvaluado}</p>
-    <p><strong>Reputación actualizada:</strong> ${reputacionActualizada}</p>
-</c:if>
+        <c:if test="${not empty calificacion}">
+            <div class="summary-grid">
+                <div class="summary-card"><strong>ID calificación</strong>${calificacion.id}</div>
+                <div class="summary-card"><strong>ID sesión</strong>${calificacion.idSesion}</div>
+                <div class="summary-card"><strong>Puntuación</strong>${calificacion.puntuacion}</div>
+                <div class="summary-card"><strong>Usuario evaluado</strong>${idUsuarioEvaluado}</div>
+                <div class="summary-card"><strong>Reputación actualizada</strong>${reputacionActualizada}</div>
+            </div>
+            <div class="panel">
+                <strong>Comentario</strong>
+                <p>${calificacion.comentario}</p>
+            </div>
+        </c:if>
 
-<p>
-    <a href="${pageContext.request.contextPath}/calificacion/sesiones-finalizadas">Volver a Mis Sesiones Finalizadas</a>
-</p>
-
-<p>
-    <a href="${pageContext.request.contextPath}/match/explorar">Ir a Explorar Matches</a>
-</p>
+        <div class="actions footer-actions">
+            <a class="btn btn-secondary" href="${pageContext.request.contextPath}/calificacion/sesiones-finalizadas">Volver a Mis Sesiones Finalizadas</a>
+            <a class="btn btn-secondary" href="${pageContext.request.contextPath}/match/explorar">Ir a Explorar Matches</a>
+            <a class="btn btn-secondary" href="javascript:history.back()">Volver atras</a>
+        </div>
+    </div>
+</div>
 
 </body>
 </html>

@@ -3,45 +3,61 @@
 <html>
 <head>
     <title>Detalle del Perfil</title>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/skillswap.css" />
 </head>
 <body>
-<h1>Detalle del Perfil</h1>
+<div class="page-shell">
+    <div class="card">
+        <div class="card-header">
+            <h1>Detalle del Perfil</h1>
+        </div>
 
-<c:if test="${empty matchSeleccionado}">
-    <p>No se encontró el match solicitado.</p>
-</c:if>
+        <c:if test="${empty matchSeleccionado}">
+            <p class="empty-state">No se encontró el match solicitado.</p>
+        </c:if>
 
-<c:if test="${not empty matchSeleccionado}">
-    <p><strong>Usuario:</strong> ${matchSeleccionado.usuarioMatch.nombre}</p>
-    <p><strong>Correo:</strong> ${matchSeleccionado.usuarioMatch.correo}</p>
-    <p><strong>Compatibilidad:</strong> ${matchSeleccionado.compatibilidad}</p>
+        <c:if test="${not empty matchSeleccionado}">
+            <div class="summary-grid">
+                <div class="summary-card"><strong>Usuario</strong>${matchSeleccionado.usuarioMatch.nombre}</div>
+                <div class="summary-card"><strong>Correo</strong>${matchSeleccionado.usuarioMatch.correo}</div>
+                <div class="summary-card"><strong>Compatibilidad</strong>${matchSeleccionado.compatibilidad}</div>
+                <c:if test="${not empty perfilDetalle}">
+                    <div class="summary-card"><strong>Reputación</strong>${perfilDetalle.reputacion}</div>
+                </c:if>
+            </div>
 
-    <c:if test="${not empty perfilDetalle}">
-        <p><strong>Reputación:</strong> ${perfilDetalle.reputacion}</p>
+            <c:if test="${not empty perfilDetalle}">
+                <div class="grid-2">
+                    <div class="panel">
+                        <strong>Habilidades que ofrece</strong>
+                        <ul class="list">
+                            <c:forEach items="${perfilDetalle.habilidadesOfrece}" var="habilidad">
+                                <li class="list-item">${habilidad}</li>
+                            </c:forEach>
+                        </ul>
+                    </div>
+                    <div class="panel">
+                        <strong>Habilidades que desea aprender</strong>
+                        <ul class="list">
+                            <c:forEach items="${perfilDetalle.habilidadesBusca}" var="habilidad">
+                                <li class="list-item">${habilidad}</li>
+                            </c:forEach>
+                        </ul>
+                    </div>
+                </div>
+            </c:if>
 
-        <p><strong>Habilidades que ofrece:</strong></p>
-        <ul>
-            <c:forEach items="${perfilDetalle.habilidadesOfrece}" var="habilidad">
-                <li>${habilidad}</li>
-            </c:forEach>
-        </ul>
+            <div class="actions footer-actions">
+                <a class="btn btn-primary" href="${pageContext.request.contextPath}/sesion/agenda/${matchSeleccionado.id}">Contactar Usuario</a>
+            </div>
+        </c:if>
 
-        <p><strong>Habilidades que desea aprender:</strong></p>
-        <ul>
-            <c:forEach items="${perfilDetalle.habilidadesBusca}" var="habilidad">
-                <li>${habilidad}</li>
-            </c:forEach>
-        </ul>
-    </c:if>
-
-    <p>
-        <a href="${pageContext.request.contextPath}/sesion/agenda/${matchSeleccionado.id}">Solicitar intercambio</a>
-    </p>
-</c:if>
-
-<p>
-    <a href="${pageContext.request.contextPath}/match/lista">Volver a la lista de matches</a>
-</p>
+        <div class="actions footer-actions">
+            <a class="btn btn-secondary" href="${pageContext.request.contextPath}/match/lista">Volver atras</a>
+            <a class="btn btn-secondary" href="${pageContext.request.contextPath}/sesion/confirmada">Ir a sesion confirmada</a>
+        </div>
+    </div>
+</div>
 
 </body>
 </html>
