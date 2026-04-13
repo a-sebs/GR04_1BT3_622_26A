@@ -46,7 +46,7 @@
         <div class="actions footer-actions">
             <a class="btn btn-secondary" href="${pageContext.request.contextPath}/match/explorar">Explorar Matches</a>
             <a class="btn btn-secondary" href="${pageContext.request.contextPath}/calificacion/sesiones-finalizadas">Mis Sesiones Finalizadas</a>
-            <a class="btn btn-secondary" href="javascript:history.back()">Volver atras</a>
+
         </div>
 
         <div class="footer-actions">

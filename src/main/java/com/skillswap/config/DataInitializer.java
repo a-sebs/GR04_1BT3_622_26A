@@ -6,6 +6,7 @@ import com.skillswap.model.Usuario;
 import com.skillswap.repository.MatchRepository;
 import com.skillswap.repository.PerfilHabilidadesRepository;
 import com.skillswap.repository.UsuarioRepository;
+import jakarta.annotation.Nonnull;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,11 +30,19 @@ public class DataInitializer implements CommandLineRunner {
 
     @Override
     @Transactional
-    public void run(String... args) {
-        // Limpiar datos anteriores para garantizar estado limpio
+    public void run(@Nonnull String... args) {
+        // Evitar reinsertar datos demo si el arranque ya se ejecutó antes.
+        if (usuarioRepository.existsByCorreoIgnoreCase("demo@skillswap.com")) {
+            return;
+        }
+
+        // Limpiar datos anteriores para garantizar estado limpio y ejecutar los borrados antes de insertar.
         matchRepository.deleteAll();
+        matchRepository.flush();
         perfilHabilidadesRepository.deleteAll();
+        perfilHabilidadesRepository.flush();
         usuarioRepository.deleteAll();
+        usuarioRepository.flush();
 
         Usuario usuarioBase = crearUsuario("demoUser", "demoPass1", "demo@skillswap.com");
         Usuario ana = crearUsuario("anaDev", "demoPass2", "ana@skillswap.com");

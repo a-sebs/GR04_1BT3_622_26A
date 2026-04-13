@@ -15,6 +15,10 @@
 
         <c:if test="${empty sesionesFinalizadas}">
             <p class="empty-state">No tienes sesiones finalizadas pendientes de calificación.</p>
+            <div class="actions">
+                <a class="btn btn-secondary" href="${pageContext.request.contextPath}/sesion/confirmada">Volver al inicio</a>
+
+            </div>
         </c:if>
 
         <c:if test="${not empty sesionesFinalizadas}">
