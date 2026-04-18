@@ -44,7 +44,21 @@ public class PerfilHabilidades {
 	@Column(name = "habilidad", nullable = false, length = 100)
 	private Set<String> habilidadesBusca = new LinkedHashSet<>();
 
-	@Column(nullable = false)
+public boolean coincideConNombreUsuario(String filtroNombreUsuario) {
+    // Validación: si no hay filtro, todos coinciden
+    if (filtroNombreUsuario == null || filtroNombreUsuario.isBlank()) {
+        return true;
+    }
+
+    // Validación: si el perfil o usuario es nulo, no coincide
+    if (this.usuario == null || this.usuario.getNombre() == null) {
+        return false;
+    }
+
+    // Comparación normalizada (case-insensitive y trim)
+    String filtroNormalizado = filtroNombreUsuario.trim().toLowerCase();
+    return this.usuario.getNombre().toLowerCase().contains(filtroNormalizado);
+}	@Column(nullable = false)
 	private Float reputacion = 0.0f;
 
 	public void agregar(Collection<String> ofrece, Collection<String> busca) {
