@@ -219,9 +219,26 @@ public class SesionController {
 	}
 
 	private Match obtenerMatchDesdeSesion(Sesion sesion) {
+		if (sesion == null) {
+			return null;
+		}
+
+		String idMatchTexto = sesion.getIdMatch();
+		if (idMatchTexto == null || idMatchTexto.isBlank()) {
+			return null;
+		}
+
+		Long idMatch = parsearIdMatch(idMatchTexto);
+		if (idMatch == null) {
+			return null;
+		}
+
+		return matchRepository.findById(idMatch).orElse(null);
+	}
+
+	private Long parsearIdMatch(String idMatchTexto) {
 		try {
-			long idMatch = Long.parseLong(sesion.getIdMatch());
-			return matchRepository.findById(idMatch).orElse(null);
+			return Long.parseLong(idMatchTexto);
 		} catch (NumberFormatException e) {
 			return null;
 		}

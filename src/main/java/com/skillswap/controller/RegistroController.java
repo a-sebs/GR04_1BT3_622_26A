@@ -17,6 +17,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Controller
 @RequestMapping("/registro")
@@ -52,34 +53,21 @@ public class RegistroController {
 								   Model model,
 								   RedirectAttributes redirectAttributes) {
 
-		String mensajeError = validarDato(Map.of("nombre", nombre));
-		if (mensajeError != null) {
-			return regresarConError(model, mensajeError, nombre, correo);
+		String nombreNormalizado = nombre.trim();
+		String correoNormalizado = correo.trim().toLowerCase();
+
+		Optional<String> errorValidacion = obtenerErrorValidacionRegistro(
+				nombre,
+				password,
+				correo,
+				nombreNormalizado,
+				correoNormalizado
+		);
+		if (errorValidacion.isPresent()) {
+			return regresarConError(model, errorValidacion.get(), nombre, correo);
 		}
 
-		if (usuarioRepository.existsByNombreIgnoreCase(nombre.trim())) {
-			return regresarConError(model, "El usuario ya existe en la base de datos", nombre, correo);
-		}
-
-		mensajeError = validarDato(Map.of("password", password));
-		if (mensajeError != null) {
-			return regresarConError(model, mensajeError, nombre, correo);
-		}
-
-		mensajeError = validarDato(Map.of("correo", correo));
-		if (mensajeError != null) {
-			return regresarConError(model, mensajeError, nombre, correo);
-		}
-
-		if (usuarioRepository.existsByCorreoIgnoreCase(correo.trim().toLowerCase())) {
-			return regresarConError(model, "El correo ya está registrado", nombre, correo);
-		}
-
-		Usuario usuario = new Usuario();
-		usuario.setNombre(nombre.trim());
-		usuario.setPassword(password);
-		usuario.setCorreo(correo.trim().toLowerCase());
-		usuario.registrar();
+		Usuario usuario = crearUsuarioDesdeFormulario(nombreNormalizado, password, correoNormalizado);
 		Usuario usuarioGuardado = usuarioRepository.save(usuario);
 
 		redirectAttributes.addFlashAttribute("mensaje", "Usuario creado. Complete su perfil de habilidades.");
@@ -204,6 +192,52 @@ public class RegistroController {
 		model.addAttribute("catalogoHabilidades", CATALOGO_HABILIDADES);
 		model.addAttribute("habilidadesOfreceSeleccionadas", perfil.getHabilidadesOfrece());
 		model.addAttribute("habilidadesBuscaSeleccionadas", perfil.getHabilidadesBusca());
+	}
+
+	private Optional<String> obtenerErrorValidacionRegistro(String nombre,
+											String password,
+											String correo,
+											String nombreNormalizado,
+											String correoNormalizado) {
+		Optional<String> errorBasico = validarRegistroBasico(nombre, password, correo);
+		if (errorBasico.isPresent()) {
+			return errorBasico;
+		}
+		return validarUnicidad(nombreNormalizado, correoNormalizado);
+	}
+
+	private Optional<String> validarRegistroBasico(String nombre, String password, String correo) {
+		String errorNombre = validarDato(Map.of("nombre", nombre));
+		if (errorNombre != null) {
+			return Optional.of(errorNombre);
+		}
+
+		String errorPassword = validarDato(Map.of("password", password));
+		if (errorPassword != null) {
+			return Optional.of(errorPassword);
+		}
+
+		String errorCorreo = validarDato(Map.of("correo", correo));
+		return Optional.ofNullable(errorCorreo);
+	}
+
+	private Optional<String> validarUnicidad(String nombreNormalizado, String correoNormalizado) {
+		if (usuarioRepository.existsByNombreIgnoreCase(nombreNormalizado)) {
+			return Optional.of("El usuario ya existe en la base de datos");
+		}
+		if (usuarioRepository.existsByCorreoIgnoreCase(correoNormalizado)) {
+			return Optional.of("El correo ya está registrado");
+		}
+		return Optional.empty();
+	}
+
+	private Usuario crearUsuarioDesdeFormulario(String nombre, String password, String correo) {
+		Usuario usuario = new Usuario();
+		usuario.setNombre(nombre);
+		usuario.setPassword(password);
+		usuario.setCorreo(correo);
+		usuario.registrar();
+		return usuario;
 	}
 
 }
