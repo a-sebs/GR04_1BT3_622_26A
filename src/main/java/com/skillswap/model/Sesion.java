@@ -48,6 +48,29 @@ public class Sesion {
 		}
 	}
 
+	public Sesion obtenerDetalles() {
+		return this;
+	}
+
+	public boolean validarReglas() {
+		if (idMatch == null || idMatch.isBlank()) {
+			return false;
+		}
+		if (fecha == null) {
+			return false;
+		}
+		if (hora == null || hora.isBlank()) {
+			return false;
+		}
+		return estado != null && !estado.isBlank();
+	}
+
+	public void actualizar() {
+		if (!validarReglas()) {
+			throw new IllegalStateException("La sesion no cumple las reglas de negocio.");
+		}
+	}
+
 	public void agendar() {
 		if (fecha == null) {
 			throw new IllegalArgumentException("La fecha es obligatoria.");
@@ -59,13 +82,19 @@ public class Sesion {
 			throw new IllegalArgumentException("El id del match es obligatorio.");
 		}
 		estado = "PENDIENTE";
+		actualizar();
 	}
 
 	public void cancelar() {
 		estado = "CANCELADA";
+		actualizar();
 	}
 
 	public void finalizar() {
+		if ("CANCELADA".equalsIgnoreCase(estado)) {
+			throw new IllegalStateException("No se puede finalizar una sesion cancelada.");
+		}
 		estado = "FINALIZADA";
+		actualizar();
 	}
 }
