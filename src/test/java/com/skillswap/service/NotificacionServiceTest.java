@@ -2,48 +2,59 @@ package com.skillswap.service;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.lang.reflect.Method;
-import java.util.List;
-import java.util.Set;
+import java.util.Date;
+import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+import com.skillswap.model.Notificacion;
+import com.skillswap.repository.NotificacionRepository;
+import org.junit.jupiter.api.BeforeEach;
+
+@ExtendWith(MockitoExtension.class)
 class NotificacionServiceTest {
 
-    private static final String SERVICE_CLASS = "com.skillswap.service.NotificacionService";
+    private static final Integer ID_NOTIFICACION = 1001;
+    private static final String MENSAJE = "Nueva solicitud de sesion";
+    private static final String HABILIDADES = "Java, SQL";
+    private static final boolean NO_LEIDA = false;
 
-    @Test
-    @DisplayName("obtenerLista debe poder invocarse en un mock del servicio")
-    void given_list_when_have_notifications_then_ok() {
-        Class<?> tipo = assertDoesNotThrow(() -> Class.forName(SERVICE_CLASS));
+    @Mock
+    private NotificacionRepository notificacionRepository;
 
-        Method metodo = assertDoesNotThrow(() -> tipo.getDeclaredMethod("obtenerLista"));
-        Object servicioMock = Mockito.mock(tipo);
+    private NotificacionService service;
+    private Notificacion notificacion;
 
-        assertDoesNotThrow(() -> metodo.invoke(servicioMock));
-
-        boolean fueInvocado = Mockito.mockingDetails(servicioMock).getInvocations().stream()
-                .anyMatch(invocacion -> invocacion.getMethod().getName().equals("obtenerLista"));
-
-        assertTrue(fueInvocado, "Se esperaba una invocacion al metodo obtenerLista sobre el mock.");
-        assertTrue(List.class.isAssignableFrom(metodo.getReturnType()),
-                "obtenerLista debe retornar una coleccion tipo List.");
+    @BeforeEach
+    void setUp() {
+        service = new NotificacionService(notificacionRepository);
+        notificacion = new Notificacion();
+        notificacion.setIdNotificacion(ID_NOTIFICACION);
+        notificacion.setMensaje(MENSAJE);
+        notificacion.setFechaPropuesta(new Date());
+        notificacion.setHabilidades(HABILIDADES);
+        notificacion.setEstadoLectura(NO_LEIDA);
     }
 
     @Test
-    @DisplayName("marcarLeida debe declararse con una firma valida")
-    void given_notification_id_when_mark_as_read_then_ok() {
-        Class<?> tipo = assertDoesNotThrow(() -> Class.forName(SERVICE_CLASS));
+    @DisplayName("marcarLeida debe marcar la notificacion como leida al mostrar detalles")
+    void given_unread_notification_when_marcar_leida_then_notification_is_marked_as_read() {
+        // Arrange
+        when(notificacionRepository.findById(ID_NOTIFICACION)).thenReturn(Optional.of(notificacion));
+        assertFalse(notificacion.isEstadoLectura());
 
-        Method metodo = assertDoesNotThrow(() -> tipo.getDeclaredMethod("marcarLeida", Long.class));
+        // Act
+        service.marcarLeida(notificacion.getIdNotificacion().longValue());
 
-        Set<String> retornosPermitidos = Set.of("void", "Void", "boolean", "Boolean");
-        assertTrue(retornosPermitidos.contains(metodo.getReturnType().getSimpleName()),
-                "marcarLeida debe devolver void o un valor booleano.");
+        // Assert
+        assertTrue(notificacion.isEstadoLectura());
+        verify(notificacionRepository).save(notificacion);
     }
 }
-
-
