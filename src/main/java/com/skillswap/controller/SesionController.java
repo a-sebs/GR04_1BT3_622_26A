@@ -1,7 +1,6 @@
 package com.skillswap.controller;
 
 import com.skillswap.model.Match;
-import com.skillswap.boundary.DetallesSesion;
 import com.skillswap.model.Sesion;
 import com.skillswap.repository.MatchRepository;
 import com.skillswap.repository.SesionRepository;
@@ -31,6 +30,9 @@ public class SesionController {
 	private final MatchRepository matchRepository;
 	private final SesionRepository sesionRepository;
 	private final ValidadorDisponibilidad validadorDisponibilidad;
+
+	private String sesionPendienteConfirmacionId;
+	private String decisionPendiente;
 
 	public SesionController(UsuarioRepository usuarioRepository,
 						 MatchRepository matchRepository,
@@ -137,22 +139,20 @@ public class SesionController {
 
 		redirectAttributes.addFlashAttribute("mensaje",
 				"Solicitud enviada con éxito. La sesión quedó registrada en estado Pendiente.");
+		redirectAttributes.addFlashAttribute("notificacion",
+				"Se notificó a " + match.getUsuarioMatch().getNombre() + " sobre la nueva solicitud.");
 		redirectAttributes.addFlashAttribute("mensajeIntroduccion", mensaje);
 		return "redirect:/sesion/confirmada/" + sesionGuardada.getId();
 	}
 
 	@GetMapping("/sesion/confirmada/{sesionId}")
 	public String mostrarConfirmacion(@PathVariable String sesionId, Model model, HttpSession session) {
-		return presentarDetallesSesion(sesionId, model, session);
-	}
-
-	public String presentarDetallesSesion(String sesionId, Model model, HttpSession session) {
 		Long usuarioId = obtenerUsuarioEnSesion(session);
 		if (usuarioId == null) {
 			return "redirect:/login";
 		}
 
-		Sesion sesion = obtenerDetallesSesion(sesionId);
+		Sesion sesion = sesionRepository.findById(sesionId).orElse(null);
 		if (sesion == null) {
 			return "redirect:/match/lista";
 		}
@@ -162,10 +162,7 @@ public class SesionController {
 			return "redirect:/match/lista";
 		}
 
-		DetallesSesion detallesSesion = construirDetallesSesion(sesion);
-
 		model.addAttribute("sesionAgendada", sesion);
-		model.addAttribute("detallesSesion", detallesSesion);
 		model.addAttribute("destinatarioNombre", match.getUsuarioMatch().getNombre());
 		return "sesion/sesionConfirmada";
 	}
@@ -175,18 +172,12 @@ public class SesionController {
 	public String finalizarSesion(@PathVariable String sesionId,
 						  HttpSession session,
 						  RedirectAttributes redirectAttributes) {
-		return aceptarSesion(sesionId, session, redirectAttributes);
-	}
-
-	public String aceptarSesion(String sesionId,
-					 HttpSession session,
-					 RedirectAttributes redirectAttributes) {
 		Long usuarioId = obtenerUsuarioEnSesion(session);
 		if (usuarioId == null) {
 			return "redirect:/login";
 		}
 
-		Sesion sesion = obtenerDetallesSesion(sesionId);
+		Sesion sesion = sesionRepository.findById(sesionId).orElse(null);
 		if (sesion == null) {
 			return "redirect:/match/lista";
 		}
@@ -196,37 +187,68 @@ public class SesionController {
 			return "redirect:/match/lista";
 		}
 
-		if (!validarReglasNegocio(sesion)) {
-			redirectAttributes.addFlashAttribute("error", "La sesion no cumple las reglas de negocio.");
-			return "redirect:/sesion/confirmada/" + sesionId;
-		}
-
-		DetallesSesion detallesSesion = construirDetallesSesion(sesion);
-		detallesSesion.seleccionarOpcionAceptar();
-		detallesSesion.confirmarAccion();
-		detallesSesion.confirmarDecision();
-
 		sesion.finalizar();
-		actualizarBaseDeDatos(sesion);
-		redirectAttributes.addFlashAttribute("mensaje", detallesSesion.mostrarMensajeExito());
+		sesionRepository.save(sesion);
+		redirectAttributes.addFlashAttribute("mensaje", "Sesion finalizada correctamente.");
 		return "redirect:/sesion/confirmada/" + sesionId;
 	}
 
-	public Sesion obtenerDetallesSesion(String sesionId) {
-		Sesion sesion = sesionRepository.findById(sesionId).orElse(null);
-		if (sesion == null) {
-			return null;
+	public void aceptarSesion(String id) {
+		if (id == null || id.isBlank()) {
+			throw new IllegalArgumentException("El id de la sesion es obligatorio.");
 		}
-		return sesion;
-	}
 
-	public boolean validarReglasNegocio(Sesion sesion) {
-		return sesion != null && sesion.validarReglas();
-	}
+		Sesion sesion = sesionRepository.findById(id)
+				.orElseThrow(() -> new IllegalArgumentException("No existe una sesion con el id proporcionado."));
 
-	public void actualizarBaseDeDatos(Sesion sesion) {
-		sesion.actualizar();
+		validarVigencia(sesion);
+		validarPermisos(sesion);
+
+		sesion.setEstado("CONFIRMADA");
 		sesionRepository.save(sesion);
+
+		registrarTrazabilidad("ACEPTAR", id);
+		notificarExito("Sesion aceptada correctamente para id: " + id);
+
+		this.sesionPendienteConfirmacionId = id;
+		this.decisionPendiente = "ACEPTAR";
+	}
+
+	public void confirmarDesision() {
+		if (sesionPendienteConfirmacionId == null || decisionPendiente == null) {
+			throw new IllegalStateException("No hay una decision pendiente por confirmar.");
+		}
+
+		registrarTrazabilidad("CONFIRMAR_" + decisionPendiente, sesionPendienteConfirmacionId);
+		notificarExito("Decision confirmada correctamente para sesion: " + sesionPendienteConfirmacionId);
+
+		sesionPendienteConfirmacionId = null;
+		decisionPendiente = null;
+	}
+
+	private void validarVigencia(Sesion sesion) {
+		if (sesion.getFecha() == null) {
+			throw new IllegalStateException("La sesion no tiene fecha definida.");
+		}
+
+		LocalDate fechaSesion = sesion.getFecha().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+		if (fechaSesion.isBefore(LocalDate.now())) {
+			throw new IllegalStateException("La sesion no esta vigente.");
+		}
+	}
+
+	private void validarPermisos(Sesion sesion) {
+		if (sesion.getEstado() == null || !"PENDIENTE".equalsIgnoreCase(sesion.getEstado())) {
+			throw new IllegalStateException("La sesion no se puede aceptar en el estado actual.");
+		}
+	}
+
+	private void registrarTrazabilidad(String accion, String sesionId) {
+		System.out.println("TRAZABILIDAD - accion: " + accion + ", sesionId: " + sesionId);
+	}
+
+	private void notificarExito(String mensaje) {
+		System.out.println("NOTIFICACION - " + mensaje);
 	}
 
 	public boolean verificarDisponibilidad(Match match, LocalDate fecha, String hora) {
@@ -275,38 +297,11 @@ public class SesionController {
 		return matchRepository.findById(idMatch).orElse(null);
 	}
 
-	private DetallesSesion construirDetallesSesion(Sesion sesion) {
-		DetallesSesion detallesSesion = new DetallesSesion();
-		detallesSesion.desplegarDetallesSesion(sesion.obtenerDetalles());
-		return detallesSesion;
-	}
-
 	private Long parsearIdMatch(String idMatchTexto) {
 		try {
 			return Long.parseLong(idMatchTexto);
 		} catch (NumberFormatException e) {
 			return null;
 		}
-	}
-
-	// ========== MÉTODO PARA PROCESAR SOLICITUD DE SESIÓN ==========
-
-	/**
-	 * Procesa una solicitud de sesión, actualizando su estado a ACEPTADA o RECHAZADA.
-	 * 
-	 * @param sesionId ID de la sesión a procesar
-	 * @param aceptada true para ACEPTADA, false para RECHAZADA
-	 */
-	@Transactional
-	public void procesarSolicitud(String sesionId, boolean aceptada) {
-		if (sesionId == null || sesionId.isBlank()) {
-			return;
-		}
-		
-		sesionRepository.findById(sesionId).ifPresent(sesion -> {
-			String nuevoEstado = aceptada ? "ACEPTADA" : "RECHAZADA";
-			sesion.setEstado(nuevoEstado);
-			sesionRepository.save(sesion);
-		});
 	}
 }
