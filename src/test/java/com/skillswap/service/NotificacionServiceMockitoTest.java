@@ -23,12 +23,13 @@ import org.junit.jupiter.api.BeforeEach;
 @ExtendWith(MockitoExtension.class)
 class NotificacionServiceMockitoTest {
 
-    private static final long ID_PENDIENTE_1 = 1L;
-    private static final long ID_LEIDA = 2L;
-    private static final long ID_PENDIENTE_2 = 3L;
+    private static final Integer ID_PENDIENTE_1 = 1;
+    private static final Integer ID_LEIDA = 2;
+    private static final Integer ID_PENDIENTE_2 = 3;
     private static final String MENSAJE_PENDIENTE_1 = "Pendiente 1";
     private static final String MENSAJE_LEIDA = "Leida";
     private static final String MENSAJE_PENDIENTE_2 = "Pendiente 2";
+    private static final String HABILIDADES = "Java, SQL";
     private static final int CANTIDAD_ESPERADA_PENDIENTES = 2;
 
     @Mock
@@ -40,9 +41,9 @@ class NotificacionServiceMockitoTest {
 
     @BeforeEach
     void setUp() {
-        Notificacion notificacionPendiente1 = new Notificacion(ID_PENDIENTE_1, MENSAJE_PENDIENTE_1, new Date(), false);
-        Notificacion notificacionLeida = new Notificacion(ID_LEIDA, MENSAJE_LEIDA, new Date(), true);
-        Notificacion notificacionPendiente2 = new Notificacion(ID_PENDIENTE_2, MENSAJE_PENDIENTE_2, new Date(), false);
+        Notificacion notificacionPendiente1 = crearNotificacion(ID_PENDIENTE_1, MENSAJE_PENDIENTE_1, false);
+        Notificacion notificacionLeida = crearNotificacion(ID_LEIDA, MENSAJE_LEIDA, true);
+        Notificacion notificacionPendiente2 = crearNotificacion(ID_PENDIENTE_2, MENSAJE_PENDIENTE_2, false);
         notificacionesMixtas = List.of(notificacionPendiente1, notificacionLeida, notificacionPendiente2);
     }
 
@@ -58,8 +59,17 @@ class NotificacionServiceMockitoTest {
         // Assert
         assertNotNull(resultado);
         assertEquals(CANTIDAD_ESPERADA_PENDIENTES, resultado.size());
-        assertFalse(resultado.stream().anyMatch(Notificacion::isLeida));
+        assertFalse(resultado.stream().anyMatch(Notificacion::isEstadoLectura));
         verify(notificacionRepository).findAll();
     }
-}
 
+    private Notificacion crearNotificacion(Integer id, String mensaje, boolean estadoLectura) {
+        Notificacion notificacion = new Notificacion();
+        notificacion.setIdNotificacion(id);
+        notificacion.setMensaje(mensaje);
+        notificacion.setFechaPropuesta(new Date());
+        notificacion.setHabilidades(HABILIDADES);
+        notificacion.setEstadoLectura(estadoLectura);
+        return notificacion;
+    }
+}

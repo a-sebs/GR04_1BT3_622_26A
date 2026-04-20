@@ -4,6 +4,7 @@ import com.skillswap.model.Notificacion;
 import com.skillswap.repository.NotificacionRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -11,17 +12,17 @@ public class NotificacionService {
 
     private final NotificacionRepository notificacionRepository;
 
-    public NotificacionService() {
-        this(null);
-    }
-
     public NotificacionService(NotificacionRepository notificacionRepository) {
         this.notificacionRepository = notificacionRepository;
     }
 
     public List<Notificacion> solicitarLista() {
+        if (notificacionRepository == null) {
+            return Collections.emptyList();
+        }
+
         return obtenerFuenteNotificaciones().stream()
-                .filter(notificacion -> !notificacion.isLeida())
+                .filter(notificacion -> !notificacion.isEstadoLectura())
                 .toList();
     }
 
@@ -30,33 +31,25 @@ public class NotificacionService {
             return;
         }
 
-        marcarLeidaEnRepositorio(idNotificacion);
-        marcarLeidaEnMemoria(idNotificacion);
+        if (idNotificacion > Integer.MAX_VALUE || idNotificacion < Integer.MIN_VALUE) {
+            return;
+        }
+
+        marcarLeidaEnRepositorio(idNotificacion.intValue());
     }
 
     private List<Notificacion> obtenerFuenteNotificaciones() {
-        if (notificacionRepository == null) {
-            return Notificacion.listarPendientesEnMemoria();
-        }
         return notificacionRepository.findAll();
     }
 
-    private void marcarLeidaEnRepositorio(Long idNotificacion) {
+    private void marcarLeidaEnRepositorio(Integer idNotificacion) {
         if (notificacionRepository == null) {
             return;
         }
         notificacionRepository.findById(idNotificacion).ifPresent(notificacion -> {
-            notificacion.marcarLeida();
+            notificacion.setEstadoLectura(true);
             notificacionRepository.save(notificacion);
         });
-    }
-
-    private void marcarLeidaEnMemoria(Long idNotificacion) {
-        Notificacion notificacionEnMemoria = Notificacion.buscarEnMemoria(idNotificacion);
-        if (notificacionEnMemoria == null) {
-            return;
-        }
-        notificacionEnMemoria.marcarLeida();
     }
 }
 
