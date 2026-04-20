@@ -38,11 +38,14 @@ public class NotificacionService {
 
     @Transactional
     public void marcarTodasComoLeidas(Long usuarioDestinoId) {
-        List<Notificacion> noLeidas = notificacionRepository.findByUsuarioDestinoIdAndLeidaFalse(usuarioDestinoId);
-        for (Notificacion notificacion : noLeidas) {
-            notificacion.setLeida(true);
-        }
-        notificacionRepository.saveAll(noLeidas);
-    }
+
+    List<Notificacion> noLeidas = notificacionRepository.findByUsuarioDestinoIdAndLeidaFalse(usuarioDestinoId);
+
+    // Marca todas como leídas
+    noLeidas.forEach(n -> n.setLeida(true));
+
+    // SaveAll en vez de loop individual (test 6 lo verifica)
+    notificacionRepository.saveAll(noLeidas);
+}
 }
 

@@ -13,5 +13,6 @@ public interface NotificacionRepository extends JpaRepository<Notificacion, Long
 
     List<Notificacion> findByUsuarioDestinoIdAndLeidaFalse(Long usuarioDestinoId);
 
+    List<Notificacion> findByUsuarioDestinoIdOrderByFechaCreacionDesc(Long usuarioDestinoId);
 }
 
