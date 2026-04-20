@@ -291,16 +291,22 @@ public class SesionController {
 
 	// ========== MÉTODO PARA PROCESAR SOLICITUD DE SESIÓN ==========
 
+	/**
+	 * Procesa una solicitud de sesión, actualizando su estado a ACEPTADA o RECHAZADA.
+	 * 
+	 * @param sesionId ID de la sesión a procesar
+	 * @param aceptada true para ACEPTADA, false para RECHAZADA
+	 */
+	@Transactional
 	public void procesarSolicitud(String sesionId, boolean aceptada) {
-		Sesion sesion = sesionRepository.findById(sesionId).orElse(null);
-
-		if (sesion != null) {
-			if (aceptada) {
-				sesion.setEstado("ACEPTADA");
-			} else {
-				sesion.setEstado("RECHAZADA");
-			}
-			sesionRepository.save(sesion);
+		if (sesionId == null || sesionId.isBlank()) {
+			return;
 		}
+		
+		sesionRepository.findById(sesionId).ifPresent(sesion -> {
+			String nuevoEstado = aceptada ? "ACEPTADA" : "RECHAZADA";
+			sesion.setEstado(nuevoEstado);
+			sesionRepository.save(sesion);
+		});
 	}
 }
