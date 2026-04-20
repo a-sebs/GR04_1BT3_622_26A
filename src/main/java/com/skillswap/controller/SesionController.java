@@ -288,4 +288,19 @@ public class SesionController {
 			return null;
 		}
 	}
+
+	// ========== MÉTODO PARA PROCESAR SOLICITUD DE SESIÓN ==========
+
+	public void procesarSolicitud(String sesionId, boolean aceptada) {
+		Sesion sesion = sesionRepository.findById(sesionId).orElse(null);
+
+		if (sesion != null) {
+			if (aceptada) {
+				sesion.setEstado("ACEPTADA");
+			} else {
+				sesion.setEstado("RECHAZADA");
+			}
+			sesionRepository.save(sesion);
+		}
+	}
 }
