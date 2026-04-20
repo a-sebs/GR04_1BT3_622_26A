@@ -31,6 +31,9 @@ public class SesionController {
 	private final SesionRepository sesionRepository;
 	private final ValidadorDisponibilidad validadorDisponibilidad;
 
+	private String sesionPendienteConfirmacionId;
+	private String decisionPendiente;
+
 	public SesionController(UsuarioRepository usuarioRepository,
 						 MatchRepository matchRepository,
 						 SesionRepository sesionRepository,
@@ -188,6 +191,64 @@ public class SesionController {
 		sesionRepository.save(sesion);
 		redirectAttributes.addFlashAttribute("mensaje", "Sesion finalizada correctamente.");
 		return "redirect:/sesion/confirmada/" + sesionId;
+	}
+
+	public void aceptarSesion(String id) {
+		if (id == null || id.isBlank()) {
+			throw new IllegalArgumentException("El id de la sesion es obligatorio.");
+		}
+
+		Sesion sesion = sesionRepository.findById(id)
+				.orElseThrow(() -> new IllegalArgumentException("No existe una sesion con el id proporcionado."));
+
+		validarVigencia(sesion);
+		validarPermisos(sesion);
+
+		sesion.setEstado("CONFIRMADA");
+		sesionRepository.save(sesion);
+
+		registrarTrazabilidad("ACEPTAR", id);
+		notificarExito("Sesion aceptada correctamente para id: " + id);
+
+		this.sesionPendienteConfirmacionId = id;
+		this.decisionPendiente = "ACEPTAR";
+	}
+
+	public void confirmarDesision() {
+		if (sesionPendienteConfirmacionId == null || decisionPendiente == null) {
+			throw new IllegalStateException("No hay una decision pendiente por confirmar.");
+		}
+
+		registrarTrazabilidad("CONFIRMAR_" + decisionPendiente, sesionPendienteConfirmacionId);
+		notificarExito("Decision confirmada correctamente para sesion: " + sesionPendienteConfirmacionId);
+
+		sesionPendienteConfirmacionId = null;
+		decisionPendiente = null;
+	}
+
+	private void validarVigencia(Sesion sesion) {
+		if (sesion.getFecha() == null) {
+			throw new IllegalStateException("La sesion no tiene fecha definida.");
+		}
+
+		LocalDate fechaSesion = sesion.getFecha().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+		if (fechaSesion.isBefore(LocalDate.now())) {
+			throw new IllegalStateException("La sesion no esta vigente.");
+		}
+	}
+
+	private void validarPermisos(Sesion sesion) {
+		if (sesion.getEstado() == null || !"PENDIENTE".equalsIgnoreCase(sesion.getEstado())) {
+			throw new IllegalStateException("La sesion no se puede aceptar en el estado actual.");
+		}
+	}
+
+	private void registrarTrazabilidad(String accion, String sesionId) {
+		System.out.println("TRAZABILIDAD - accion: " + accion + ", sesionId: " + sesionId);
+	}
+
+	private void notificarExito(String mensaje) {
+		System.out.println("NOTIFICACION - " + mensaje);
 	}
 
 	public boolean verificarDisponibilidad(Match match, LocalDate fecha, String hora) {
