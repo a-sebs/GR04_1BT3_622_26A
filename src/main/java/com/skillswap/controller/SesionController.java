@@ -214,6 +214,43 @@ public class SesionController {
 		this.decisionPendiente = "ACEPTAR";
 	}
 
+	// Compatibilidad con pruebas legacy tras merge.
+	public String aceptarSesion(String id, HttpSession session, RedirectAttributes redirectAttributes) {
+		Long usuarioId = obtenerUsuarioEnSesion(session);
+		if (usuarioId == null) {
+			return "redirect:/login";
+		}
+
+		Sesion sesion = sesionRepository.findById(id).orElse(null);
+		if (sesion == null) {
+			return "redirect:/match/lista";
+		}
+
+		Match match = obtenerMatchDesdeSesion(sesion);
+		if (match == null || match.getUsuarioSolicitante() == null
+				|| !match.getUsuarioSolicitante().getId().equals(usuarioId)) {
+			return "redirect:/match/lista";
+		}
+
+		sesion.setEstado("ACEPTADA");
+		sesionRepository.save(sesion);
+
+		if (redirectAttributes != null) {
+			redirectAttributes.addFlashAttribute("mensaje", "Sesion aceptada correctamente.");
+		}
+
+		return "redirect:/sesion/confirmada/" + sesion.getId();
+	}
+
+	// Compatibilidad con pruebas legacy tras merge.
+	public void procesarSolicitud(String sesionId, Boolean decision) {
+		Sesion sesion = sesionRepository.findById(sesionId)
+				.orElseThrow(() -> new IllegalArgumentException("No existe una sesion con el id proporcionado."));
+
+		sesion.setEstado(Boolean.TRUE.equals(decision) ? "ACEPTADA" : "RECHAZADA");
+		sesionRepository.save(sesion);
+	}
+
 	public void confirmarDesision() {
 		if (sesionPendienteConfirmacionId == null || decisionPendiente == null) {
 			throw new IllegalStateException("No hay una decision pendiente por confirmar.");
