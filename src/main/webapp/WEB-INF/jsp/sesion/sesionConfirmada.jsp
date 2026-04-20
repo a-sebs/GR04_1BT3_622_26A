@@ -23,10 +23,9 @@
             <h2>Detalle de la solicitud</h2>
             <div class="summary-grid">
                 <div class="summary-card"><strong>Destinatario</strong>${destinatarioNombre}</div>
-                <div class="summary-card"><strong>ID Match</strong>${sesionAgendada.idMatch}</div>
-                <div class="summary-card"><strong>Fecha</strong>${sesionAgendada.fecha}</div>
-                <div class="summary-card"><strong>Hora</strong>${sesionAgendada.hora}</div>
-                <div class="summary-card"><strong>Estado</strong>${sesionAgendada.estado}</div>
+                <c:forEach items="${detallesSesion.detalles}" var="detalle">
+                    <div class="summary-card">${detalle}</div>
+                </c:forEach>
             </div>
             <c:if test="${not empty mensajeIntroduccion}">
                 <div class="panel">
