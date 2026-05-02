@@ -3,8 +3,8 @@ package com.skillswap.service;
 import com.skillswap.model.Notificacion;
 import com.skillswap.repository.NotificacionRepository;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -16,36 +16,41 @@ public class NotificacionService {
         this.notificacionRepository = notificacionRepository;
     }
 
-    @Transactional
-    public Notificacion crearNotificacionSolicitud(Long usuarioDestinoId,
-                                                   Long usuarioEmisorId,
-                                                   Long referenciaSolicitudId,
-                                                   String mensaje) {
-        Notificacion notificacion = new Notificacion();
-        notificacion.setUsuarioDestinoId(usuarioDestinoId);
-        notificacion.setUsuarioEmisorId(usuarioEmisorId);
-        notificacion.setReferenciaSolicitudId(referenciaSolicitudId);
-        notificacion.setTipo("SOLICITUD_INTERCAMBIO");
-        notificacion.setMensaje(mensaje == null ? "" : mensaje);
-        notificacion.setLeida(false);
-        return notificacionRepository.save(notificacion);
+    public List<Notificacion> solicitarLista() {
+        if (notificacionRepository == null) {
+            return Collections.emptyList();
+        }
+
+        return obtenerFuenteNotificaciones().stream()
+                .filter(notificacion -> !notificacion.isEstadoLectura())
+                .toList();
     }
 
-    @Transactional(readOnly = true)
-    public Long contarNotificacionesNoLeidas(Long usuarioDestinoId) {
-        return notificacionRepository.countByUsuarioDestinoIdAndLeidaFalse(usuarioDestinoId);
+    public void marcarLeida(Long idNotificacion) {
+        if (idNotificacion == null) {
+            return;
+        }
+
+        if (idNotificacion > Integer.MAX_VALUE || idNotificacion < Integer.MIN_VALUE) {
+            return;
+        }
+
+        marcarLeidaEnRepositorio(idNotificacion.intValue());
     }
 
-    @Transactional
-    public void marcarTodasComoLeidas(Long usuarioDestinoId) {
-        //  método que los tests esperan
-        List<Notificacion> noLeidas = notificacionRepository.findByUsuarioDestinoIdAndLeidaFalse(usuarioDestinoId);
+    private List<Notificacion> obtenerFuenteNotificaciones() {
+        return notificacionRepository.findAll();
+    }
 
-        // Marca todas como leídas
-        noLeidas.forEach(n -> n.setLeida(true));
-
-        // saveAll en vez de loop individual (test 6 lo verifica)
-        notificacionRepository.saveAll(noLeidas);
+    private void marcarLeidaEnRepositorio(Integer idNotificacion) {
+        if (notificacionRepository == null) {
+            return;
+        }
+        notificacionRepository.findById(idNotificacion).ifPresent(notificacion -> {
+            notificacion.setEstadoLectura(true);
+            notificacionRepository.save(notificacion);
+        });
     }
 }
+
 

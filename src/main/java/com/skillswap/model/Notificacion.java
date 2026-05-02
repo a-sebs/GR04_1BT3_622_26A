@@ -2,16 +2,15 @@ package com.skillswap.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
+import java.util.Date;
 
 @Entity
 @Table(name = "notificaciones")
@@ -21,38 +20,20 @@ import java.time.LocalDateTime;
 public class Notificacion {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
     @Column(nullable = false)
-    private Long usuarioDestinoId;
-
-    @Column(nullable = false)
-    private Long usuarioEmisorId;
-
-    @Column(nullable = false)
-    private Long referenciaSolicitudId;
-
-    @Column(nullable = false, length = 50)
-    private String tipo;
+    private Integer idNotificacion;
 
     @Column(nullable = false, length = 500)
     private String mensaje;
 
     @Column(nullable = false)
-    private Boolean leida;
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date fechaPropuesta;
 
-    @Column(nullable = false, updatable = false)
-    private LocalDateTime fechaCreacion;
+    @Column(nullable = false, length = 500)
+    private String habilidades;
 
-    @PrePersist
-    protected void onCreate() {
-        if (fechaCreacion == null) {
-            fechaCreacion = LocalDateTime.now();
-        }
-        if (leida == null) {
-            leida = false;
-        }
-    }
+    @Column(nullable = false)
+    private boolean estadoLectura;
 }
 
