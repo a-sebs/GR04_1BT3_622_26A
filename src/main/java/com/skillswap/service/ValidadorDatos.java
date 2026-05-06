@@ -10,7 +10,6 @@ import java.util.regex.Pattern;
 @Service
 public class ValidadorDatos {
 
-	private static final Pattern USERNAME_PATTERN = Pattern.compile("^[a-zA-Z0-9]+$");
 	private static final Pattern EMAIL_PATTERN = Pattern.compile("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$");
 	private static final Pattern FILTRO_HABILIDAD_PATTERN = Pattern.compile("^[a-zA-Z0-9\\s+#.-]{0,100}$");
 	private static final Pattern COMENTARIO_PATTERN = Pattern.compile("^[A-Za-z\\s]+$");
@@ -123,7 +122,7 @@ public class ValidadorDatos {
 		if (nombreUsuario == null || nombreUsuario.isBlank()) {
 			return "El nombre es obligatorio.";
 		}
-		if (!USERNAME_PATTERN.matcher(nombreUsuario.trim()).matches()) {
+		if (!esFormatoNombreValido(nombreUsuario)) {
 			return "Error al validar el nombre de usuario, no ingrese caracteres especiales";
 		}
 		return null;
@@ -168,4 +167,15 @@ public class ValidadorDatos {
 		}
 		return null;
 	}
+
+	private static final Pattern USERNAME_PATTERN = Pattern.compile("^[a-zA-Z0-9]+$");
+
+	public Boolean esFormatoNombreValido(String nombreNuevo){
+		if (nombreNuevo == null || nombreNuevo.isBlank()) {
+			return false;
+		}
+		return USERNAME_PATTERN.matcher(nombreNuevo.trim()).matches();
+	}
 }
+
+
