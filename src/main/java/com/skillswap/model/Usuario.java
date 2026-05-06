@@ -49,7 +49,11 @@ public class Usuario {
     }
 
     public void registrar() {
-        validarCredenciales(nombre, password, correo);
+        //validarCredenciales(nombre, password, correo);
+        validarUsuario(nombre);
+        validarPassword(password);
+        validarCorreo(correo);
+
         nombre = nombre.trim();
         correo = correo.trim().toLowerCase();
         if (fechaRegistro == null) {
@@ -73,6 +77,18 @@ public class Usuario {
             throw new IllegalArgumentException("Debe enviar al menos un dato para actualizar.");
         }
 
+        // VALIDAR PRIMERO
+        if (hayNuevoNombre) {
+            validarUsuario(nuevoNombre);
+        }
+        if (hayNuevoPassword) {
+            validarPassword(nuevoPassword);
+        }
+        if (hayNuevoCorreo) {
+            validarCorreo(nuevoCorreo);
+        }
+
+        // DESPUÉS actualizar
         if (hayNuevoNombre) {
             this.nombre = nuevoNombre.trim();
         }
@@ -82,28 +98,30 @@ public class Usuario {
         if (hayNuevoCorreo) {
             this.correo = nuevoCorreo.trim().toLowerCase();
         }
-
-        validarCredenciales(this.nombre, this.password, this.correo);
     }
-
-    private void validarCredenciales(String nombre, String password, String correo) {
+    
+    public void validarUsuario(String nombre){
         if (nombre == null || nombre.isBlank()) {
-            throw new IllegalArgumentException("El nombre es obligatorio.");
+          throw new IllegalArgumentException("El nombre es obligatorio.");
         }
         if (!USERNAME_PATTERN.matcher(nombre.trim()).matches()) {
             throw new IllegalArgumentException("Error al validar el nombre de usuario, no ingrese caracteres especiales");
         }
+    }
+    public void validarCorreo (String correo){
+        if (correo == null || correo.isBlank()) {
+            throw new IllegalArgumentException("El correo es obligatorio.");
+       }
+        if (!EMAIL_PATTERN.matcher(correo.trim()).matches()) {
+            throw new IllegalArgumentException("El correo debe seguir el formato: correo@dominio.com");
+        }
+    }
+    public void validarPassword (String password){
         if (password == null || password.isBlank()) {
             throw new IllegalArgumentException("La contraseña es obligatoria.");
         }
         if (password.length() < 8) {
             throw new IllegalArgumentException("La contraseña tiene 8 caracteres mínimo");
-        }
-        if (correo == null || correo.isBlank()) {
-            throw new IllegalArgumentException("El correo es obligatorio.");
-        }
-        if (!EMAIL_PATTERN.matcher(correo.trim()).matches()) {
-            throw new IllegalArgumentException("El correo debe seguir el formato: correo@dominio.com");
         }
     }
 }
