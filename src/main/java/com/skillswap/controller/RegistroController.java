@@ -4,6 +4,7 @@ import com.skillswap.model.PerfilHabilidades;
 import com.skillswap.model.Usuario;
 import com.skillswap.repository.PerfilHabilidadesRepository;
 import com.skillswap.repository.UsuarioRepository;
+import com.skillswap.service.UsuarioService;
 import com.skillswap.service.ValidadorDatos;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,13 +31,16 @@ public class RegistroController {
 	private final UsuarioRepository usuarioRepository;
 	private final PerfilHabilidadesRepository perfilHabilidadesRepository;
 	private final ValidadorDatos validadorDatos;
+	private final UsuarioService usuarioService;
 
 	public RegistroController(UsuarioRepository usuarioRepository,
 							  PerfilHabilidadesRepository perfilHabilidadesRepository,
-							  ValidadorDatos validadorDatos) {
+							  ValidadorDatos validadorDatos,
+							  UsuarioService usuarioService) {
 		this.usuarioRepository = usuarioRepository;
 		this.perfilHabilidadesRepository = perfilHabilidadesRepository;
 		this.validadorDatos = validadorDatos;
+		this.usuarioService = usuarioService;
 	}
 
 	@GetMapping
@@ -106,7 +110,40 @@ public class RegistroController {
 						   RedirectAttributes redirectAttributes) {
 		return guardarPerfil(usuarioId, habilidadesOfrece, habilidadesBusca, model, redirectAttributes, false);
 	}
+	@PostMapping("/actualizar-usuario/{usuarioId}")
+	@Transactional
+	public String actualizarInformacion(@PathVariable Long usuarioId,
+	                                    @RequestParam("nombre") String nombre,
+	                                    @RequestParam("correo") String correo,
+	                                    Model model,
+	                                    RedirectAttributes redirectAttributes) {
 
+		// 3. validarInformacion(nombreUsuario, correoUsuario)
+		Map<String, Object> datos = Map.of(
+				"nombre", nombre,
+				"correo", correo
+		);
+		String errorValidacion = validarDato(datos);
+
+		if (errorValidacion != null) {
+			// 4.b Información No Válida
+			model.addAttribute("error", errorValidacion);
+			return "registro/formularioActualizarUsuario";
+		}
+
+		try {
+			// 4.a Información válida - usar servicio para actualizar
+			usuarioService.actualizarDatos(usuarioId, nombre, correo);
+
+			// 5. mostrarMensajeExito()
+			redirectAttributes.addFlashAttribute("mensaje", "Información actualizada exitosamente");
+			return "redirect:/registro/perfil/" + usuarioId;
+		} catch (IllegalArgumentException e) {
+			// Capturar excepción del servicio
+			model.addAttribute("error", e.getMessage());
+			return "registro/formularioActualizarUsuario";
+		}
+	}
 	@PostMapping("/perfil/{usuarioId}/eliminar")
 	@Transactional
 	public String eliminarPerfil(@PathVariable Long usuarioId,
