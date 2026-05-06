@@ -3,6 +3,7 @@ package com.skillswap.controller;
 import com.skillswap.model.Match;
 import com.skillswap.boundary.DetallesSesion;
 import com.skillswap.model.Sesion;
+import com.skillswap.model.Usuario;
 import com.skillswap.repository.MatchRepository;
 import com.skillswap.repository.SesionRepository;
 import com.skillswap.repository.UsuarioRepository;
@@ -23,6 +24,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 @Controller
 public class SesionController {
@@ -308,5 +310,22 @@ public class SesionController {
 			sesion.setEstado(nuevoEstado);
 			sesionRepository.save(sesion);
 		});
+	}
+
+	@PostMapping("/recuperar")
+	public String solicitarRecuperacion(@RequestParam("correo") String correo, RedirectAttributes ra) {
+		if (!procesarRecuperacion(correo)) {
+			ra.addFlashAttribute("error", "El usuario no existe."); // Cumple CA2
+			return "redirect:/login/olvido";
+		}
+
+		// Si existe, obtenemos el ID para el siguiente paso (Cumple CA1)
+		Long id = usuarioRepository.findByCorreoIgnoreCase(correo).get().getId();
+		return "redirect:/login/restablecer/" + id;
+	}
+
+	@Transactional(readOnly = true)
+	public boolean procesarRecuperacion(String correo) {
+		return usuarioRepository.findByCorreoIgnoreCase(correo).isPresent();
 	}
 }

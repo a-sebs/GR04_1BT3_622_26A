@@ -24,6 +24,7 @@ public class Usuario {
 
     private static final Pattern USERNAME_PATTERN = Pattern.compile("^[a-zA-Z0-9]+$");
     private static final Pattern EMAIL_PATTERN = Pattern.compile("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$");
+    public static final String ERR_PASSWORD_CORTA = "La contraseña tiene 8 caracteres mínimo";
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

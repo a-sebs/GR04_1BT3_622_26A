@@ -17,6 +17,7 @@ public class ValidadorDatos {
 	private final List<String> mensajesError = new ArrayList<>();
 	private final List<String> reglasActivas = new ArrayList<>();
 
+
 	public boolean validar(Map<String, Object> datos) {
 		mensajesError.clear();
 		reglasActivas.clear();
@@ -167,5 +168,13 @@ public class ValidadorDatos {
 			return "Los comentarios tienen caracteres alfabéticos y no contienen caracteres especiales";
 		}
 		return null;
+	}
+	// En ValidadorDatos.java
+	public boolean validarContrasena(String password) {
+		if (password == null || password.length() < 8) {
+			// Centralizamos el mensaje del CA3
+			return false;
+		}
+		return true;
 	}
 }
