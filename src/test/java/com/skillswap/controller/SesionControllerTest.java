@@ -7,6 +7,7 @@ import com.skillswap.repository.MatchRepository;
 import com.skillswap.repository.SesionRepository;
 import com.skillswap.repository.UsuarioRepository;
 import com.skillswap.service.ValidadorDisponibilidad;
+import com.skillswap.service.ValidadorDatos;
 import jakarta.servlet.http.HttpSession;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -44,6 +45,9 @@ class SesionControllerTest {
     private ValidadorDisponibilidad validadorDisponibilidad;
 
     @Mock
+    private ValidadorDatos validadorDatos;
+
+    @Mock
     private HttpSession httpSession;
 
     @Mock
@@ -58,7 +62,8 @@ class SesionControllerTest {
                 usuarioRepository,
                 matchRepository,
                 sesionRepository,
-                validadorDisponibilidad
+                validadorDisponibilidad,
+                validadorDatos
         );
     }
 

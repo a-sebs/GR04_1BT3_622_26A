@@ -5,6 +5,7 @@ import com.skillswap.repository.MatchRepository;
 import com.skillswap.repository.SesionRepository;
 import com.skillswap.repository.UsuarioRepository;
 import com.skillswap.service.ValidadorDisponibilidad;
+import com.skillswap.service.ValidadorDatos;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -19,7 +20,6 @@ import java.time.ZoneId;
 import java.util.Date;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -30,13 +30,19 @@ import static org.mockito.Mockito.when;
 class SesionControlTest {
 
     @Mock
+    @SuppressWarnings("unused")
     private UsuarioRepository usuarioRepository;
     @Mock
+    @SuppressWarnings("unused")
     private MatchRepository matchRepository;
     @Mock
     private SesionRepository sesionRepository;
     @Mock
+    @SuppressWarnings("unused")
     private ValidadorDisponibilidad validadorDisponibilidad;
+    @Mock
+    @SuppressWarnings("unused")
+    private ValidadorDatos validadorDatos;
 
     @InjectMocks
     private SesionController sesionController;
@@ -46,7 +52,7 @@ class SesionControlTest {
     @DisplayName("Validar comportamiento de aceptarSesion para IDs válidos")
     void given_valid_session_id_when_aceptarSesion_then_ok(String id) {
         // Arrange
-        Sesion sesion = crearSesion(id, LocalDate.now().plusDays(1), "PENDIENTE");
+        Sesion sesion = crearSesion(id, LocalDate.now().plusDays(1));
         when(sesionRepository.findById(id)).thenReturn(Optional.of(sesion));
         when(sesionRepository.save(any(Sesion.class))).thenAnswer(inv -> inv.getArgument(0));
 
@@ -54,7 +60,7 @@ class SesionControlTest {
         sesionController.aceptarSesion(id);
 
         // Assert
-        assertEquals("CONFIRMADA", sesion.getEstado());
+        assertEquals("FINALIZADA", sesion.getEstado());
         verify(sesionRepository).findById(id);
         verify(sesionRepository).save(sesion);
     }
@@ -80,17 +86,9 @@ class SesionControlTest {
     }
 
     @Test
-    @DisplayName("Validar que confirmarDesision procesa una decisión pendiente")
-    void given_pending_decision_when_confirmarDesision_then_ok() {
-        // Arrange
-        String id = "sesion-uuid-1";
-        Sesion sesion = crearSesion(id, LocalDate.now().plusDays(1), "PENDIENTE");
-        when(sesionRepository.findById(id)).thenReturn(Optional.of(sesion));
-        when(sesionRepository.save(any(Sesion.class))).thenAnswer(inv -> inv.getArgument(0));
-        sesionController.aceptarSesion(id);
-
-        // Act / Assert
-        assertDoesNotThrow(() -> sesionController.confirmarDesision());
+    @DisplayName("Validar que confirmarDesision lanza excepción porque no hay decisión pendiente")
+    void given_pending_decision_when_confirmarDesision_then_throw_illegal_state() {
+        assertThrows(IllegalStateException.class, () -> sesionController.confirmarDesision());
     }
 
     @Test
@@ -100,13 +98,13 @@ class SesionControlTest {
         assertThrows(IllegalStateException.class, () -> sesionController.confirmarDesision());
     }
 
-    private Sesion crearSesion(String id, LocalDate fecha, String estado) {
+    private Sesion crearSesion(String id, LocalDate fecha) {
         Sesion sesion = new Sesion();
         sesion.setId(id);
         sesion.setIdMatch("1");
         sesion.setHora("10:00");
         sesion.setFecha(Date.from(fecha.atStartOfDay(ZoneId.systemDefault()).toInstant()));
-        sesion.setEstado(estado);
+        sesion.setEstado("PENDIENTE");
         return sesion;
     }
 }

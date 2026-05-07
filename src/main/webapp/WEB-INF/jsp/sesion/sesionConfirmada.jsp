@@ -43,6 +43,8 @@
         </c:if>
 
         <div class="actions footer-actions">
+            <a class="btn btn-secondary" href="${pageContext.request.contextPath}/registro/editar/${usuarioId}">Editar información del perfil</a>
+            <a class="btn btn-secondary" href="${pageContext.request.contextPath}/registro/perfil/${usuarioId}">Editar perfil de habilidades</a>
             <a class="btn btn-secondary" href="${pageContext.request.contextPath}/match/explorar">Explorar Matches</a>
             <a class="btn btn-secondary" href="${pageContext.request.contextPath}/calificacion/sesiones-finalizadas">Mis Sesiones Finalizadas</a>
 

@@ -58,7 +58,7 @@
         <form method="post" action="${pageContext.request.contextPath}/registro/perfil/${usuarioId}/eliminar">
             <div class="footer-actions">
                 <button type="submit" class="btn btn-danger">Eliminar perfil</button>
-                <a class="btn btn-secondary" href="javascript:history.back()">Volver atras</a>
+                <a class="inline-link" href="${pageContext.request.contextPath}/sesion/confirmada">Volver</a>
             </div>
         </form>
     </div>
