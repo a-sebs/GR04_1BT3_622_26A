@@ -57,10 +57,8 @@ public class RegistroController {
 		String correoNormalizado = correo.trim().toLowerCase();
 
 		Optional<String> errorValidacion = obtenerErrorValidacionRegistro(
-				nombre,
-				password,
-				correo,
 				nombreNormalizado,
+				password,
 				correoNormalizado
 		);
 		if (errorValidacion.isPresent()) {
@@ -118,6 +116,54 @@ public class RegistroController {
 		}
 		redirectAttributes.addFlashAttribute("mensaje", "Perfil de habilidades eliminado.");
 		return "redirect:/registro/perfil/" + usuarioId;
+	}
+
+	@GetMapping("/editar/{id}")
+	public String mostrarFormularioEditarPerfil(@PathVariable Long id, Model model) {
+		Usuario usuario = usuarioRepository.findById(id).orElse(null);
+		if (usuario == null) {
+			model.addAttribute("error", "Usuario no encontrado.");
+			return "redirect:/registro";
+		}
+		model.addAttribute("usuario", usuario);
+		return "registro/editarPerfil";
+	}
+
+	@PostMapping("/actualizar")
+	@Transactional
+	public String actualizarPerfil(@RequestParam("usuarioId") Long usuarioId,
+								   @RequestParam(value = "nombre", required = false) String nuevoNombre,
+								   @RequestParam(value = "correo", required = false) String nuevoCorreo,
+								   Model model,
+								   RedirectAttributes redirectAttributes,
+								   jakarta.servlet.http.HttpSession session) {
+
+		Usuario usuario = usuarioRepository.findById(usuarioId).orElse(null);
+		if (usuario == null) {
+			model.addAttribute("error", "Usuario no encontrado.");
+			return "redirect:/registro";
+		}
+
+		String nombreNormalizado = (nuevoNombre != null) ? nuevoNombre.trim() : null;
+		String correoNormalizado = (nuevoCorreo != null) ? nuevoCorreo.trim().toLowerCase() : null;
+
+		Optional<String> errorValidacion = validarActualizacionUsuario(usuarioId, nombreNormalizado, correoNormalizado);
+		if (errorValidacion.isPresent()) {
+			model.addAttribute("usuario", usuario);
+			model.addAttribute("error", errorValidacion.get());
+			return "registro/editarPerfil";
+		}
+
+		usuario.actualizarDatos(nombreNormalizado, null, correoNormalizado);
+		usuarioRepository.save(usuario);
+
+		// Sincronizar sesión: actualizar nombre en la sesión si fue modificado
+		if (nombreNormalizado != null && !nombreNormalizado.isBlank()) {
+			session.setAttribute("usuarioNombre", nombreNormalizado);
+		}
+
+		redirectAttributes.addFlashAttribute("mensaje", "Perfil actualizado exitosamente.");
+		return "redirect:/registro/editar/" + usuarioId;
 	}
 
 	public String validarDato(Map<String, Object> datos) {
@@ -196,29 +242,17 @@ public class RegistroController {
 
 	private Optional<String> obtenerErrorValidacionRegistro(String nombre,
 											String password,
-											String correo,
-											String nombreNormalizado,
-											String correoNormalizado) {
+											String correo) {
 		Optional<String> errorBasico = validarRegistroBasico(nombre, password, correo);
 		if (errorBasico.isPresent()) {
 			return errorBasico;
 		}
-		return validarUnicidad(nombreNormalizado, correoNormalizado);
+		return validarUnicidad(nombre, correo);
 	}
 
 	private Optional<String> validarRegistroBasico(String nombre, String password, String correo) {
-		String errorNombre = validarDato(Map.of("nombre", nombre));
-		if (errorNombre != null) {
-			return Optional.of(errorNombre);
-		}
-
-		String errorPassword = validarDato(Map.of("password", password));
-		if (errorPassword != null) {
-			return Optional.of(errorPassword);
-		}
-
-		String errorCorreo = validarDato(Map.of("correo", correo));
-		return Optional.ofNullable(errorCorreo);
+		List<String> errores = validadorDatos.validarCredencialesUsuario(nombre, password, correo);
+		return errores.isEmpty() ? Optional.empty() : Optional.of(errores.getFirst());
 	}
 
 	private Optional<String> validarUnicidad(String nombreNormalizado, String correoNormalizado) {
@@ -238,6 +272,37 @@ public class RegistroController {
 		usuario.setCorreo(correo);
 		usuario.registrar();
 		return usuario;
+	}
+
+	private Optional<String> validarActualizacionUsuario(Long usuarioId, String nombre, String correo) {
+		if (nombre == null && correo == null) {
+			return Optional.of("Debe proporcionar al menos un dato para actualizar.");
+		}
+
+		List<String> errores = validadorDatos.validarActualizacionPerfil(nombre, correo);
+		if (!errores.isEmpty()) {
+			return Optional.of(errores.getFirst());
+		}
+
+		if (nombre != null && !nombre.isBlank()) {
+			if (usuarioRepository.existsByNombreIgnoreCase(nombre)) {
+				Usuario usuarioExistente = usuarioRepository.findByNombreIgnoreCase(nombre).orElse(null);
+				if (usuarioExistente != null && !usuarioExistente.getId().equals(usuarioId)) {
+					return Optional.of("El usuario ya existe en la base de datos");
+				}
+			}
+		}
+
+		if (correo != null && !correo.isBlank()) {
+			if (usuarioRepository.existsByCorreoIgnoreCase(correo)) {
+				Usuario usuarioExistente = usuarioRepository.findByCorreoIgnoreCase(correo).orElse(null);
+				if (usuarioExistente != null && !usuarioExistente.getId().equals(usuarioId)) {
+					return Optional.of("El correo ya está registrado");
+				}
+			}
+		}
+
+		return Optional.empty();
 	}
 
 }

@@ -35,6 +35,8 @@
         <div class="footer-actions">
             <p class="muted">¿No tienes cuenta?</p>
             <a class="inline-link" href="${pageContext.request.contextPath}/registro">Registrarse</a>
+            <p class="muted">¿Olvidó su contraseña?</p>
+            <a class="inline-link" href="${pageContext.request.contextPath}/login/olvido">Recuperar acceso</a>
         </div>
     </div>
 </div>

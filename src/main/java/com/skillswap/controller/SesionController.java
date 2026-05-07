@@ -8,6 +8,7 @@ import com.skillswap.repository.MatchRepository;
 import com.skillswap.repository.SesionRepository;
 import com.skillswap.repository.UsuarioRepository;
 import com.skillswap.service.ValidadorDisponibilidad;
+import com.skillswap.service.ValidadorDatos;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,15 +34,18 @@ public class SesionController {
 	private final MatchRepository matchRepository;
 	private final SesionRepository sesionRepository;
 	private final ValidadorDisponibilidad validadorDisponibilidad;
+	private final ValidadorDatos validadorDatos;
 
 	public SesionController(UsuarioRepository usuarioRepository,
 						 MatchRepository matchRepository,
 						 SesionRepository sesionRepository,
-						 ValidadorDisponibilidad validadorDisponibilidad) {
+						 ValidadorDisponibilidad validadorDisponibilidad,
+						 ValidadorDatos validadorDatos) {
 		this.usuarioRepository = usuarioRepository;
 		this.matchRepository = matchRepository;
 		this.sesionRepository = sesionRepository;
 		this.validadorDisponibilidad = validadorDisponibilidad;
+		this.validadorDatos = validadorDatos;
 	}
 
 	@GetMapping("/")
@@ -77,7 +81,12 @@ public class SesionController {
 	}
 
 	@GetMapping("/sesion/confirmada")
-	public String sesionConfirmada() {
+	public String sesionConfirmada(HttpSession session, Model model) {
+		Long usuarioId = obtenerUsuarioEnSesion(session);
+		if (usuarioId == null) {
+			return "redirect:/login";
+		}
+		model.addAttribute("usuarioId", usuarioId);
 		return "sesion/sesionConfirmada";
 	}
 
@@ -166,6 +175,7 @@ public class SesionController {
 
 		DetallesSesion detallesSesion = construirDetallesSesion(sesion);
 
+		model.addAttribute("usuarioId", usuarioId);
 		model.addAttribute("sesionAgendada", sesion);
 		model.addAttribute("detallesSesion", detallesSesion);
 		model.addAttribute("destinatarioNombre", match.getUsuarioMatch().getNombre());
@@ -315,13 +325,65 @@ public class SesionController {
 	@PostMapping("/recuperar")
 	public String solicitarRecuperacion(@RequestParam("correo") String correo, RedirectAttributes ra) {
 		if (!procesarRecuperacion(correo)) {
-			ra.addFlashAttribute("error", "El usuario no existe."); // Cumple CA2
+			ra.addFlashAttribute("error", "El usuario no existe.");
 			return "redirect:/login/olvido";
 		}
 
-		// Si existe, obtenemos el ID para el siguiente paso (Cumple CA1)
 		Long id = usuarioRepository.findByCorreoIgnoreCase(correo).get().getId();
 		return "redirect:/login/restablecer/" + id;
+	}
+
+	@GetMapping("/login/olvido")
+	public String mostrarOlvidoPassword() {
+		return "sesion/olvidoPassword";
+	}
+
+	@PostMapping("/login/verificar")
+	public String verificarCorreo(@RequestParam("correo") String correo,
+								  RedirectAttributes redirectAttributes) {
+		Optional<Usuario> usuario = usuarioRepository.findByCorreoIgnoreCase(correo);
+		if (usuario.isEmpty()) {
+			redirectAttributes.addFlashAttribute("error", "El usuario no existe.");
+			return "redirect:/login/olvido";
+		}
+		return "redirect:/login/restablecer/" + usuario.get().getId();
+	}
+
+	@GetMapping("/login/restablecer/{id}")
+	public String mostrarActualizarPassword(@PathVariable Long id, Model model) {
+		Usuario usuario = usuarioRepository.findById(id).orElse(null);
+		if (usuario == null) {
+			return "redirect:/login";
+		}
+		model.addAttribute("usuarioId", id);
+		return "sesion/actualizarPassword";
+	}
+
+	@PostMapping("/login/guardar-password")
+	@Transactional
+	public String guardarPassword(@RequestParam("usuarioId") Long usuarioId,
+								  @RequestParam("password") String nuevaPassword,
+								  Model model,
+								  RedirectAttributes redirectAttributes) {
+		Usuario usuario = usuarioRepository.findById(usuarioId).orElse(null);
+		if (usuario == null) {
+			model.addAttribute("error", "Usuario no encontrado.");
+			return "redirect:/login";
+		}
+
+		// Validar longitud de contraseña (CA3: Mínimo 8 caracteres)
+		if (!validadorDatos.validarPassword(nuevaPassword)) {
+			model.addAttribute("usuarioId", usuarioId);
+			model.addAttribute("error", ValidadorDatos.ERR_PASSWORD_CORTA);
+			return "sesion/actualizarPassword";
+		}
+
+		// Actualizar contraseña: null en nombre y correo para no modificarlos
+		usuario.actualizarDatos(null, nuevaPassword, null);
+		usuarioRepository.save(usuario);
+
+		redirectAttributes.addFlashAttribute("mensaje", "Contraseña actualizada exitosamente.");
+		return "redirect:/login";
 	}
 
 	@Transactional(readOnly = true)

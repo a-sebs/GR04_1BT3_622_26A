@@ -3,6 +3,7 @@ package com.skillswap.service;
 import com.skillswap.controller.SesionController;
 import com.skillswap.model.Usuario;
 import com.skillswap.repository.UsuarioRepository;
+import com.skillswap.service.ValidadorDatos;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -11,6 +12,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -64,22 +66,16 @@ public class RecuperacionServiceTest {
 
     @Test
     @DisplayName("CA3: Debe lanzar excepción si la nueva contraseña es menor a 8 caracteres")
-    void given_short_pass_when_registering_then_fail() {
-        // Arrange: Creamos un usuario real para probar su lógica interna
-        Usuario usuario = new Usuario();
-        usuario.setNombre("UserTest");
-        usuario.setCorreo("test@skillswap.com");
+    void given_short_pass_when_validating_then_fail() {
+        // Arrange: ValidadorDatos es el responsable de validar contraseña
+        ValidadorDatos validador = new ValidadorDatos();
 
-        // Act & Assert: Intentamos registrar con una clave de 5 caracteres
-        usuario.setPassword("12345");
+        // Act & Assert: Verificamos que la validación rechace contraseña corta
+        List<String> errores = validador.validarCredencialesUsuario("UserTest", "12345", "test@skillswap.com");
 
-        // Verificamos que el sistema lance la excepción esperada
-        Exception excepcion = assertThrows(IllegalArgumentException.class, () -> {
-            usuario.registrar(); // Este método dispara la validación interna
-        });
-
-        // Validamos que el mensaje sea el que definimos en la entidad
-        assertEquals(Usuario.ERR_PASSWORD_CORTA, excepcion.getMessage());
+        // Validamos que el mensaje sea el que definimos en el servicio
+        org.junit.jupiter.api.Assertions.assertTrue(errores.contains(ValidadorDatos.ERR_PASSWORD_CORTA),
+                "El validador debería rechazar contraseña menor a 8 caracteres");
     }
 
 }

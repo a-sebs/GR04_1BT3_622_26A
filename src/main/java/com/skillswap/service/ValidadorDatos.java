@@ -14,6 +14,12 @@ public class ValidadorDatos {
 	private static final Pattern EMAIL_PATTERN = Pattern.compile("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$");
 	private static final Pattern FILTRO_HABILIDAD_PATTERN = Pattern.compile("^[a-zA-Z0-9\\s+#.-]{0,100}$");
 	private static final Pattern COMENTARIO_PATTERN = Pattern.compile("^[A-Za-z\\s]+$");
+	public static final String ERR_NOMBRE_OBLIGATORIO = "El nombre es obligatorio.";
+	public static final String ERR_NOMBRE_FORMATO = "Error al validar el nombre de usuario, no ingrese caracteres especiales";
+	public static final String ERR_PASSWORD_OBLIGATORIA = "La contraseña es obligatoria.";
+	public static final String ERR_PASSWORD_CORTA = "La contraseña tiene 8 caracteres mínimo";
+	public static final String ERR_CORREO_OBLIGATORIO = "El correo es obligatorio.";
+	public static final String ERR_CORREO_FORMATO = "El correo debe seguir el formato: correo@dominio.com";
 	private final List<String> mensajesError = new ArrayList<>();
 	private final List<String> reglasActivas = new ArrayList<>();
 
@@ -25,7 +31,7 @@ public class ValidadorDatos {
 		if (datos.containsKey("nombre")) {
 			reglasActivas.add("nombreUsuario");
 			String nombre = (String) datos.get("nombre");
-			String error = validarUsuarioFormato(nombre);
+			String error = obtenerErrorNombre(nombre);
 			if (error != null) {
 				mensajesError.add(error);
 			}
@@ -34,20 +40,18 @@ public class ValidadorDatos {
 		if (datos.containsKey("password")) {
 			reglasActivas.add("password");
 			String password = (String) datos.get("password");
-			if (password == null || password.isBlank()) {
-				mensajesError.add("La contraseña es obligatoria.");
-			} else if (!validarPassword(password)) {
-				mensajesError.add("La contraseña tiene 8 caracteres mínimo");
+			String error = obtenerErrorPassword(password);
+			if (error != null) {
+				mensajesError.add(error);
 			}
 		}
 
 		if (datos.containsKey("correo")) {
 			reglasActivas.add("correo");
 			String correo = (String) datos.get("correo");
-			if (correo == null || correo.isBlank()) {
-				mensajesError.add("El correo es obligatorio.");
-			} else if (!validarEmail(correo)) {
-				mensajesError.add("El correo debe seguir el formato: correo@dominio.com");
+			String error = obtenerErrorCorreo(correo);
+			if (error != null) {
+				mensajesError.add(error);
 			}
 		}
 
@@ -98,18 +102,50 @@ public class ValidadorDatos {
 		return mensajesError.isEmpty();
 	}
 
-	public boolean validarEmail(String email) {
-		if (email == null || email.isBlank()) {
-			return false;
+	public List<String> validarCredencialesUsuario(String nombre, String password, String correo) {
+		List<String> errores = new ArrayList<>();
+		String errorNombre = obtenerErrorNombre(nombre);
+		if (errorNombre != null) {
+			errores.add(errorNombre);
 		}
-		return EMAIL_PATTERN.matcher(email.trim()).matches();
+		String errorPassword = obtenerErrorPassword(password);
+		if (errorPassword != null) {
+			errores.add(errorPassword);
+		}
+		String errorCorreo = obtenerErrorCorreo(correo);
+		if (errorCorreo != null) {
+			errores.add(errorCorreo);
+		}
+		return errores;
+	}
+
+	public List<String> validarActualizacionPerfil(String nombre, String correo) {
+		List<String> errores = new ArrayList<>();
+		if (nombre != null && !nombre.isBlank()) {
+			String errorNombre = obtenerErrorNombre(nombre);
+			if (errorNombre != null) {
+				errores.add(errorNombre);
+			}
+		}
+		if (correo != null && !correo.isBlank()) {
+			String errorCorreo = obtenerErrorCorreo(correo);
+			if (errorCorreo != null) {
+				errores.add(errorCorreo);
+			}
+		}
+		return errores;
+	}
+
+	public boolean validarNombre(String nombre) {
+		return obtenerErrorNombre(nombre) == null;
+	}
+
+	public boolean validarEmail(String email) {
+		return obtenerErrorCorreo(email) == null;
 	}
 
 	public boolean validarPassword(String pwd) {
-		if (pwd == null || pwd.isBlank()) {
-			return false;
-		}
-		return pwd.length() >= 8;
+		return obtenerErrorPassword(pwd) == null;
 	}
 
 	public List<String> getMensajeError() {
@@ -120,22 +156,42 @@ public class ValidadorDatos {
 		return List.copyOf(reglasActivas);
 	}
 
-	private String validarUsuarioFormato(String nombreUsuario) {
+	private String obtenerErrorNombre(String nombreUsuario) {
 		if (nombreUsuario == null || nombreUsuario.isBlank()) {
-			return "El nombre es obligatorio.";
+			return ERR_NOMBRE_OBLIGATORIO;
 		}
 		if (!USERNAME_PATTERN.matcher(nombreUsuario.trim()).matches()) {
-			return "Error al validar el nombre de usuario, no ingrese caracteres especiales";
+			return ERR_NOMBRE_FORMATO;
+		}
+		return null;
+	}
+
+	private String obtenerErrorPassword(String password) {
+		if (password == null || password.isBlank()) {
+			return ERR_PASSWORD_OBLIGATORIA;
+		}
+		if (password.length() < 8) {
+			return ERR_PASSWORD_CORTA;
+		}
+		return null;
+	}
+
+	private String obtenerErrorCorreo(String correo) {
+		if (correo == null || correo.isBlank()) {
+			return ERR_CORREO_OBLIGATORIO;
+		}
+		if (!EMAIL_PATTERN.matcher(correo.trim()).matches()) {
+			return ERR_CORREO_FORMATO;
 		}
 		return null;
 	}
 
 	private String validarSeleccionHabilidades(List<String> habilidadesDomina, List<String> habilidadesAprender) {
 		if (habilidadesDomina == null || habilidadesDomina.isEmpty()) {
-			return "Debe seleccionar al menos una habilidad para enseñar.";
+			return "Debe seleccionar al menos una habilidad en cada área.";
 		}
 		if (habilidadesAprender == null || habilidadesAprender.isEmpty()) {
-			return "Debe seleccionar al menos una habilidad para aprender.";
+			return "Debe seleccionar al menos una habilidad en cada área.";
 		}
 		return null;
 	}
@@ -168,13 +224,5 @@ public class ValidadorDatos {
 			return "Los comentarios tienen caracteres alfabéticos y no contienen caracteres especiales";
 		}
 		return null;
-	}
-	// En ValidadorDatos.java
-	public boolean validarContrasena(String password) {
-		if (password == null || password.length() < 8) {
-			// Centralizamos el mensaje del CA3
-			return false;
-		}
-		return true;
 	}
 }
