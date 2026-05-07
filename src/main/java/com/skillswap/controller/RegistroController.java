@@ -267,7 +267,13 @@ public class RegistroController {
 		}
 		perfilHabilidadesRepository.save(perfil);
 
-		return confirmarRegistro(redirectAttributes);
+		// HU12: Si es edición (esNuevo=false), redirige a sesionConfirmada; si es nuevo, a login
+		if (esNuevo) {
+			return confirmarRegistro(redirectAttributes);
+		} else {
+			redirectAttributes.addFlashAttribute("mensaje", "Perfil de habilidades actualizado exitosamente.");
+			return "redirect:/sesion/confirmada";
+		}
 	}
 
 	private void cargarAtributosPerfil(Model model, Long usuarioId, PerfilHabilidades perfil) {
