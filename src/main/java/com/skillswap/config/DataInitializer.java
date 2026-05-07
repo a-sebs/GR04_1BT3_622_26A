@@ -45,7 +45,7 @@ public class DataInitializer implements CommandLineRunner {
         usuarioRepository.flush();
 
         Usuario usuarioBase = crearUsuario("demoUser", "demoPass1", "demo@skillswap.com");
-        Usuario ana = crearUsuario("anaDev", "demoPass2", "ana@skillswap.com");
+            Usuario ana = crearUsuario("anaDev", "demoPass2", "ana@skillswap.com");
         Usuario luis = crearUsuario("luisData", "demoPass3", "luis@skillswap.com");
         Usuario maria = crearUsuario("mariaWeb", "demoPass4", "maria@skillswap.com");
 
