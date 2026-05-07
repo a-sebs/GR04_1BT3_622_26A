@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: com.skillswap.Gr041Bt362226AApplicationTests
+-------------------------------------------------------------------------------
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 9.246 s -- in com.skillswap.Gr041Bt362226AApplicationTests

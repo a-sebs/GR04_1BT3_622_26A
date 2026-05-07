@@ -13,7 +13,6 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
-import java.util.regex.Pattern;
 
 @Entity
 @Table(name = "usuarios")
@@ -21,9 +20,6 @@ import java.util.regex.Pattern;
 @Setter
 @NoArgsConstructor
 public class Usuario {
-
-    private static final Pattern USERNAME_PATTERN = Pattern.compile("^[a-zA-Z0-9]+$");
-    private static final Pattern EMAIL_PATTERN = Pattern.compile("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$");
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -49,13 +45,9 @@ public class Usuario {
     }
 
     public void registrar() {
-        //validarCredenciales(nombre, password, correo);
-        validarUsuario(nombre);
-        validarPassword(password);
-        validarCorreo(correo);
+        this.nombre = (nombre != null) ? nombre.trim() : null;
+        this.correo = (correo != null) ? correo.trim().toLowerCase() : null;
 
-        nombre = nombre.trim();
-        correo = correo.trim().toLowerCase();
         if (fechaRegistro == null) {
             fechaRegistro = LocalDateTime.now();
         }
@@ -73,22 +65,6 @@ public class Usuario {
         boolean hayNuevoPassword = nuevoPassword != null && !nuevoPassword.isBlank();
         boolean hayNuevoCorreo = nuevoCorreo != null && !nuevoCorreo.isBlank();
 
-        if (!hayNuevoNombre && !hayNuevoPassword && !hayNuevoCorreo) {
-            throw new IllegalArgumentException("Debe enviar al menos un dato para actualizar.");
-        }
-
-        // VALIDAR PRIMERO
-        if (hayNuevoNombre) {
-            validarUsuario(nuevoNombre);
-        }
-        if (hayNuevoPassword) {
-            validarPassword(nuevoPassword);
-        }
-        if (hayNuevoCorreo) {
-            validarCorreo(nuevoCorreo);
-        }
-
-        // DESPUÉS actualizar
         if (hayNuevoNombre) {
             this.nombre = nuevoNombre.trim();
         }
@@ -97,31 +73,6 @@ public class Usuario {
         }
         if (hayNuevoCorreo) {
             this.correo = nuevoCorreo.trim().toLowerCase();
-        }
-    }
-    
-    public void validarUsuario(String nombre){
-        if (nombre == null || nombre.isBlank()) {
-          throw new IllegalArgumentException("El nombre es obligatorio.");
-        }
-        if (!USERNAME_PATTERN.matcher(nombre.trim()).matches()) {
-            throw new IllegalArgumentException("Error al validar el nombre de usuario, no ingrese caracteres especiales");
-        }
-    }
-    public void validarCorreo (String correo){
-        if (correo == null || correo.isBlank()) {
-            throw new IllegalArgumentException("El correo es obligatorio.");
-       }
-        if (!EMAIL_PATTERN.matcher(correo.trim()).matches()) {
-            throw new IllegalArgumentException("El correo debe seguir el formato: correo@dominio.com");
-        }
-    }
-    public void validarPassword (String password){
-        if (password == null || password.isBlank()) {
-            throw new IllegalArgumentException("La contraseña es obligatoria.");
-        }
-        if (password.length() < 8) {
-            throw new IllegalArgumentException("La contraseña tiene 8 caracteres mínimo");
         }
     }
 }
