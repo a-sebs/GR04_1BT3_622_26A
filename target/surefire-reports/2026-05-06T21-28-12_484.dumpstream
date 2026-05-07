@@ -1,4 +1,4 @@
-# Created at 2026-05-06T21:03:46.401
+# Created at 2026-05-06T21:28:12.859
 Boot Manifest-JAR contains absolute paths in classpath 'D:\Politecnica\Sexto Semestre\Metodologias agiles\Proyecto\mxavc\GR04_1BT3_622_26A\target\test-classes'
 Hint: <argLine>-Djdk.net.URLClassPath.disableClassPathURLCheck=true</argLine>
 'other' has different root
