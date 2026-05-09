@@ -57,19 +57,16 @@ public class RegistroController {
 								   Model model,
 								   RedirectAttributes redirectAttributes) {
 
-		String nombreNormalizado = nombre.trim();
-		String correoNormalizado = correo.trim().toLowerCase();
-
 		Optional<String> errorValidacion = obtenerErrorValidacionRegistro(
-				nombreNormalizado,
+				nombre,
 				password,
-				correoNormalizado
+				correo
 		);
 		if (errorValidacion.isPresent()) {
 			return regresarConError(model, errorValidacion.get(), nombre, correo);
 		}
 
-		Usuario usuario = crearUsuarioDesdeFormulario(nombreNormalizado, password, correoNormalizado);
+		Usuario usuario = crearUsuarioDesdeFormulario(nombre, password, correo);
 		Usuario usuarioGuardado = usuarioRepository.save(usuario);
 
 		redirectAttributes.addFlashAttribute("mensaje", "Usuario creado. Complete su perfil de habilidades.");
@@ -181,22 +178,19 @@ public class RegistroController {
 			return "redirect:/registro";
 		}
 
-		String nombreNormalizado = (nuevoNombre != null) ? nuevoNombre.trim() : null;
-		String correoNormalizado = (nuevoCorreo != null) ? nuevoCorreo.trim().toLowerCase() : null;
-
-		Optional<String> errorValidacion = validarActualizacionUsuario(usuarioId, nombreNormalizado, correoNormalizado);
+		Optional<String> errorValidacion = validarActualizacionUsuario(usuarioId, nuevoNombre, nuevoCorreo);
 		if (errorValidacion.isPresent()) {
 			model.addAttribute("usuario", usuario);
 			model.addAttribute("error", errorValidacion.get());
 			return "registro/editarPerfil";
 		}
 
-		usuario.actualizarDatos(nombreNormalizado, null, correoNormalizado);
+		usuario.actualizarDatos(nuevoNombre, null, nuevoCorreo);
 		usuarioRepository.save(usuario);
 
 		// Sincronizar sesión: actualizar nombre en la sesión si fue modificado
-		if (nombreNormalizado != null && !nombreNormalizado.isBlank()) {
-			session.setAttribute("usuarioNombre", nombreNormalizado);
+		if (nuevoNombre != null && !nuevoNombre.isBlank()) {
+			session.setAttribute("usuarioNombre", nuevoNombre.trim());
 		}
 
 		redirectAttributes.addFlashAttribute("mensaje", "Perfil actualizado exitosamente.");

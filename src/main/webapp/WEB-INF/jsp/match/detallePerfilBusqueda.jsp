@@ -48,12 +48,12 @@
             </c:if>
 
             <div class="actions footer-actions">
-                <a class="btn btn-primary" href="${pageContext.request.contextPath}/sesion/agenda/${matchSeleccionado.id}">Contactar Usuario</a>
+                <a class="btn btn-primary" href="${pageContext.request.contextPath}/sesion/agenda-busqueda/${matchSeleccionado.id}">Contactar Usuario</a>
             </div>
         </c:if>
 
         <div class="actions footer-actions">
-            <a class="btn btn-secondary" href="${pageContext.request.contextPath}/match/lista">Volver a mis matches</a>
+            <a class="btn btn-secondary" href="${pageContext.request.contextPath}/match/explorar">Volver a explorar</a>
             <a class="btn btn-secondary" href="${pageContext.request.contextPath}/sesion/confirmada">Volver al menú principal</a>
         </div>
     </div>

@@ -106,6 +106,22 @@ public class SesionController {
 		return "sesion/pantallaAgenda";
 	}
 
+	@GetMapping("/sesion/agenda-busqueda/{matchId}")
+	public String agendarSesionBusqueda(@PathVariable Long matchId, Model model, HttpSession session) {
+		Long usuarioId = obtenerUsuarioEnSesion(session);
+		if (usuarioId == null) {
+			return "redirect:/login";
+		}
+
+		Match match = matchRepository.findByIdAndUsuarioSolicitanteId(matchId, usuarioId).orElse(null);
+		if (match == null) {
+			return "redirect:/match/explorar";
+		}
+
+		cargarAgenda(model, match, "", "", "", null);
+		return "sesion/pantallaAgendaBusqueda";
+	}
+
 	@PostMapping("/sesion/agenda/{matchId}")
 	@Transactional
 	public String confirmarSesion(@PathVariable Long matchId,
@@ -199,10 +215,6 @@ public class SesionController {
 		Sesion sesion = sesionRepository.findById(sesionId)
 				.orElseThrow(() -> new IllegalArgumentException("La sesión no existe."));
 
-		if (!validarReglasNegocio(sesion)) {
-			throw new IllegalStateException("La sesión no cumple las reglas de negocio.");
-		}
-
 		sesion.finalizar();
 		actualizarBaseDeDatos(sesion);
 	}
@@ -232,19 +244,18 @@ public class SesionController {
 			return "redirect:/match/lista";
 		}
 
-		if (!validarReglasNegocio(sesion)) {
-			redirectAttributes.addFlashAttribute("error", "La sesion no cumple las reglas de negocio.");
-			return "redirect:/sesion/confirmada/" + sesionId;
-		}
-
 		DetallesSesion detallesSesion = construirDetallesSesion(sesion);
 		detallesSesion.seleccionarOpcionAceptar();
 		detallesSesion.confirmarAccion();
 		detallesSesion.confirmarDecision();
 
-		sesion.finalizar();
-		actualizarBaseDeDatos(sesion);
-		redirectAttributes.addFlashAttribute("mensaje", detallesSesion.mostrarMensajeExito());
+		try {
+			sesion.finalizar();
+			actualizarBaseDeDatos(sesion);
+			redirectAttributes.addFlashAttribute("mensaje", detallesSesion.mostrarMensajeExito());
+		} catch (IllegalStateException e) {
+			redirectAttributes.addFlashAttribute("error", "La sesion no cumple las reglas de negocio.");
+		}
 		return "redirect:/sesion/confirmada/" + sesionId;
 	}
 
@@ -256,9 +267,7 @@ public class SesionController {
 		return sesion;
 	}
 
-	public boolean validarReglasNegocio(Sesion sesion) {
-		return sesion != null && sesion.validarReglas();
-	}
+
 
 	public void actualizarBaseDeDatos(Sesion sesion) {
 		sesion.actualizar();

@@ -2,14 +2,14 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <html>
 <head>
-    <title>Lista de Matches</title>
+    <title>Resultados de Búsqueda</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/skillswap.css" />
 </head>
 <body>
 <div class="page-shell">
     <div class="card">
         <div class="card-header">
-            <h1>Lista de Matches</h1>
+            <h1>Resultados de Búsqueda</h1>
         </div>
 
         <c:if test="${not empty mensaje}">
@@ -32,7 +32,7 @@
                         <td>${item.compatibilidad}</td>
                         <td>${item.estado}</td>
                         <td>
-                            <a href="${pageContext.request.contextPath}/match/detalle/${item.id}">Ver perfil</a>
+                            <a href="${pageContext.request.contextPath}/match/detalle-busqueda/${item.id}">Ver perfil</a>
                         </td>
                     </tr>
                 </c:forEach>
@@ -46,6 +46,7 @@
         </div>
 
         <div class="actions footer-actions">
+            <a class="btn btn-secondary" href="${pageContext.request.contextPath}/match/explorar">Volver a explorar</a>
             <a class="btn btn-secondary" href="${pageContext.request.contextPath}/sesion/confirmada">Volver al menú principal</a>
         </div>
     </div>

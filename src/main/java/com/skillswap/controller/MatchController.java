@@ -68,7 +68,7 @@ public String buscarMatches(@RequestParam(value = "filtroHabilidad", required = 
     if (resultados.isEmpty()) {
         model.addAttribute("mensaje", "No se encontraron matches con los criterios ingresados.");
     }
-    return "match/listaMatches";
+    return "match/resultadosBusqueda";
 }
 	@GetMapping("/lista")
 public String mostrarResultados(Model model, HttpSession session) {
@@ -96,6 +96,24 @@ public String mostrarResultados(Model model, HttpSession session) {
 		model.addAttribute("matchSeleccionado", match);
 		model.addAttribute("perfilDetalle", perfilDetalle);
 		return "match/detallePerfil";
+	}
+
+	@GetMapping("/detalle-busqueda/{matchId}")
+	public String mostrarDetalleDelPerfilBusqueda(@PathVariable Long matchId, Model model, HttpSession session) {
+		Long usuarioId = obtenerUsuarioEnSesion(session);
+		if (usuarioId == null) {
+			return "redirect:/login";
+		}
+		Match match = matchService.obtenerMatchDeUsuario(matchId, usuarioId).orElse(null);
+		if (match == null) {
+			return "redirect:/match/explorar";
+		}
+		PerfilHabilidades perfilDetalle = perfilHabilidadesRepository
+				.findByUsuarioId(match.getUsuarioMatch().getId())
+				.orElse(null);
+		model.addAttribute("matchSeleccionado", match);
+		model.addAttribute("perfilDetalle", perfilDetalle);
+		return "match/detallePerfilBusqueda";
 	}
 	private void cargarDatosBusqueda(Model model, Long usuarioId, String filtro, String filtroNombreUsuario) {
 		model.addAttribute("usuarioId", usuarioId);
