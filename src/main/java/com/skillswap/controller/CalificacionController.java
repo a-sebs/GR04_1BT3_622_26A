@@ -57,7 +57,7 @@ public class CalificacionController {
 	}
 
 	@GetMapping("/formulario/{idSesion}")
-	public String registrarCalificacion(@PathVariable String idSesion, Model model, HttpSession session) {
+	public String registrarCalificacion(@PathVariable("idSesion") String idSesion, Model model, HttpSession session) {
 		Long usuarioId = obtenerUsuarioEnSesion(session);
 		if (usuarioId == null) {
 			return "redirect:/login";
@@ -124,7 +124,7 @@ public class CalificacionController {
 	}
 
 	@GetMapping("/resultado/{idCalificacion}")
-	public String mostrarResultado(@PathVariable String idCalificacion, Model model, HttpSession session) {
+	public String mostrarResultado(@PathVariable("idCalificacion") String idCalificacion, Model model, HttpSession session) {
 		Long usuarioId = obtenerUsuarioEnSesion(session);
 		if (usuarioId == null) {
 			return "redirect:/login";

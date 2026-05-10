@@ -29,17 +29,19 @@ public class ReporteService {
         validarReportadoId(reportadoId);
         validarMotivo(motivo);
 
+        // Construir y validar el reporte (validaciones de negocio en la entidad) antes de consultar usuarios
+        Reporte reporte = new Reporte();
+        reporte.setMotivo(motivo.trim());
+        reporte.setDescripcion(descripcion != null ? descripcion.trim() : null);
+        reporte.validar();
+
         Usuario reportante = usuarioRepository.findById(reportanteId)
                 .orElseThrow(() -> new IllegalArgumentException("El usuario reportante no existe."));
         Usuario reportado = usuarioRepository.findById(reportadoId)
                 .orElseThrow(() -> new IllegalArgumentException("El usuario reportado no existe."));
 
-        Reporte reporte = new Reporte();
         reporte.setReportante(reportante);
         reporte.setReportado(reportado);
-        reporte.setMotivo(motivo.trim());
-        reporte.setDescripcion(descripcion != null ? descripcion.trim() : null);
-        reporte.validar();
         return reporteRepository.save(reporte);
     }
 

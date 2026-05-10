@@ -22,6 +22,7 @@ com\skillswap\service\ActualizadorPerfil.class
 com\skillswap\model\Bloqueo.class
 com\skillswap\repository\NotificacionRepository.class
 com\skillswap\service\AlgoritmoMatching.class
+com\skillswap\controller\BloqueoController.class
 com\skillswap\model\DetallesSesion.class
 com\skillswap\service\ValidadorDatos.class
 com\skillswap\boundary\DetallesSesion.class
