@@ -16,28 +16,31 @@ import lombok.Setter;
 @Table(name = "reportes")
 @Getter
 @Setter
-@NoArgsConstructor
+// @NoArgsConstructor
 public class Reporte {
 
-    public static final int MAX_DESCRIPCION = 250;
+    private static final int MAX_DESCRIPCION = 500;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long idReporte;
+    private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "id_reportante", nullable = false)
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "reportante_id", nullable = false)
     private Usuario reportante;
 
-    @ManyToOne
-    @JoinColumn(name = "id_reportado", nullable = false)
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "reportado_id", nullable = false)
     private Usuario reportado;
 
     @Column(nullable = false, length = 100)
     private String motivo;
 
-    @Column(length = 250)
+    @Column(nullable = true, length = 500)
     private String descripcion;
+
+    public Reporte() {
+    }
 
     public void validar() {
         if (motivo == null || motivo.trim().isEmpty()) {
@@ -48,6 +51,7 @@ public class Reporte {
         }
     }
 
+    @CreationTimestamp
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime fecha;
 }
-
-

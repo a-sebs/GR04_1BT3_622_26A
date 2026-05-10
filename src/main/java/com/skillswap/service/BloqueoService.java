@@ -17,6 +17,9 @@ public class BloqueoService {
     @Transactional
     public Bloqueo bloquearUsuario(Long bloqueadorId, Long bloqueadoId) {
         validarIds(bloqueadorId, bloqueadoId);
+        if (bloqueoRepository.existsByIdBloqueadorAndIdBloqueado(bloqueadorId, bloqueadoId)) {
+            throw new IllegalArgumentException("El usuario ya fue bloqueado.");
+        }
 
         Bloqueo bloqueo = new Bloqueo(bloqueadorId, bloqueadoId);
         return bloqueoRepository.save(bloqueo);
@@ -31,4 +34,3 @@ public class BloqueoService {
         }
     }
 }
-

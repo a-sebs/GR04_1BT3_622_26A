@@ -25,8 +25,7 @@ import java.util.Optional;
 public class RegistroController {
 
 	private static final List<String> CATALOGO_HABILIDADES = List.of(
-			"Java", "Python", "JavaScript", "SQL", "Spring Boot", "HTML", "CSS", "Git"
-	);
+			"Java", "Python", "JavaScript", "SQL", "Spring Boot", "HTML", "CSS", "Git");
 
 	private final UsuarioRepository usuarioRepository;
 	private final PerfilHabilidadesRepository perfilHabilidadesRepository;
@@ -34,9 +33,9 @@ public class RegistroController {
 	private final UsuarioService usuarioService;
 
 	public RegistroController(UsuarioRepository usuarioRepository,
-							  PerfilHabilidadesRepository perfilHabilidadesRepository,
-							  ValidadorDatos validadorDatos,
-							  UsuarioService usuarioService) {
+			PerfilHabilidadesRepository perfilHabilidadesRepository,
+			ValidadorDatos validadorDatos,
+			UsuarioService usuarioService) {
 		this.usuarioRepository = usuarioRepository;
 		this.perfilHabilidadesRepository = perfilHabilidadesRepository;
 		this.validadorDatos = validadorDatos;
@@ -52,16 +51,15 @@ public class RegistroController {
 	@PostMapping
 	@Transactional
 	public String registrarUsuario(@RequestParam("nombre") String nombre,
-								   @RequestParam("password") String password,
-								   @RequestParam("correo") String correo,
-								   Model model,
-								   RedirectAttributes redirectAttributes) {
+			@RequestParam("password") String password,
+			@RequestParam("correo") String correo,
+			Model model,
+			RedirectAttributes redirectAttributes) {
 
 		Optional<String> errorValidacion = obtenerErrorValidacionRegistro(
 				nombre,
 				password,
-				correo
-		);
+				correo);
 		if (errorValidacion.isPresent()) {
 			return regresarConError(model, errorValidacion.get(), nombre, correo);
 		}
@@ -81,7 +79,8 @@ public class RegistroController {
 			return "registro/formularioRegistro";
 		}
 
-		PerfilHabilidades perfil = perfilHabilidadesRepository.findByUsuarioId(usuarioId).orElseGet(PerfilHabilidades::new);
+		PerfilHabilidades perfil = perfilHabilidadesRepository.findByUsuarioId(usuarioId)
+				.orElseGet(PerfilHabilidades::new);
 		cargarAtributosPerfil(model, usuarioId, perfil);
 		return "registro/formularioPerfilHabilidades";
 	}
@@ -89,35 +88,35 @@ public class RegistroController {
 	@PostMapping("/perfil/{usuarioId}/agregar")
 	@Transactional
 	public String agregarPerfil(@PathVariable Long usuarioId,
-							@RequestParam(value = "habilidadesOfrece", required = false) List<String> habilidadesOfrece,
-							@RequestParam(value = "habilidadesBusca", required = false) List<String> habilidadesBusca,
-							Model model,
-							RedirectAttributes redirectAttributes) {
+			@RequestParam(value = "habilidadesOfrece", required = false) List<String> habilidadesOfrece,
+			@RequestParam(value = "habilidadesBusca", required = false) List<String> habilidadesBusca,
+			Model model,
+			RedirectAttributes redirectAttributes) {
 		return guardarPerfil(usuarioId, habilidadesOfrece, habilidadesBusca, model, redirectAttributes, true);
 	}
 
 	@PostMapping("/perfil/{usuarioId}/editar")
 	@Transactional
 	public String editarPerfil(@PathVariable Long usuarioId,
-						   @RequestParam(value = "habilidadesOfrece", required = false) List<String> habilidadesOfrece,
-						   @RequestParam(value = "habilidadesBusca", required = false) List<String> habilidadesBusca,
-						   Model model,
-						   RedirectAttributes redirectAttributes) {
+			@RequestParam(value = "habilidadesOfrece", required = false) List<String> habilidadesOfrece,
+			@RequestParam(value = "habilidadesBusca", required = false) List<String> habilidadesBusca,
+			Model model,
+			RedirectAttributes redirectAttributes) {
 		return guardarPerfil(usuarioId, habilidadesOfrece, habilidadesBusca, model, redirectAttributes, false);
 	}
+
 	@PostMapping("/actualizar-usuario/{usuarioId}")
 	@Transactional
 	public String actualizarInformacion(@PathVariable Long usuarioId,
-	                                    @RequestParam("nombre") String nombre,
-	                                    @RequestParam("correo") String correo,
-	                                    Model model,
-	                                    RedirectAttributes redirectAttributes) {
+			@RequestParam("nombre") String nombre,
+			@RequestParam("correo") String correo,
+			Model model,
+			RedirectAttributes redirectAttributes) {
 
 		// 3. validarInformacion(nombreUsuario, correoUsuario)
 		Map<String, Object> datos = Map.of(
 				"nombre", nombre,
-				"correo", correo
-		);
+				"correo", correo);
 		String errorValidacion = validarDato(datos);
 
 		if (errorValidacion != null) {
@@ -139,10 +138,11 @@ public class RegistroController {
 			return "registro/formularioActualizarUsuario";
 		}
 	}
+
 	@PostMapping("/perfil/{usuarioId}/eliminar")
 	@Transactional
 	public String eliminarPerfil(@PathVariable Long usuarioId,
-							RedirectAttributes redirectAttributes) {
+			RedirectAttributes redirectAttributes) {
 		PerfilHabilidades perfil = perfilHabilidadesRepository.findByUsuarioId(usuarioId).orElse(null);
 		if (perfil != null) {
 			perfil.eliminar();
@@ -166,11 +166,11 @@ public class RegistroController {
 	@PostMapping("/actualizar")
 	@Transactional
 	public String actualizarPerfil(@RequestParam("usuarioId") Long usuarioId,
-								   @RequestParam(value = "nombre", required = false) String nuevoNombre,
-								   @RequestParam(value = "correo", required = false) String nuevoCorreo,
-								   Model model,
-								   RedirectAttributes redirectAttributes,
-								   jakarta.servlet.http.HttpSession session) {
+			@RequestParam(value = "nombre", required = false) String nuevoNombre,
+			@RequestParam(value = "correo", required = false) String nuevoCorreo,
+			Model model,
+			RedirectAttributes redirectAttributes,
+			jakarta.servlet.http.HttpSession session) {
 
 		Usuario usuario = usuarioRepository.findById(usuarioId).orElse(null);
 		if (usuario == null) {
@@ -211,9 +211,9 @@ public class RegistroController {
 	}
 
 	private String regresarConError(Model model,
-									String error,
-									String nombre,
-									String correo) {
+			String error,
+			String nombre,
+			String correo) {
 		cargarAtributosBase(model);
 		model.addAttribute("error", error);
 		model.addAttribute("nombre", nombre);
@@ -227,15 +227,14 @@ public class RegistroController {
 	}
 
 	private String guardarPerfil(Long usuarioId,
-							List<String> habilidadesOfrece,
-							List<String> habilidadesBusca,
-							Model model,
-							RedirectAttributes redirectAttributes,
-							boolean esNuevo) {
+			List<String> habilidadesOfrece,
+			List<String> habilidadesBusca,
+			Model model,
+			RedirectAttributes redirectAttributes,
+			boolean esNuevo) {
 		Map<String, Object> datosHabilidades = Map.of(
 				"habilidadesOfrece", habilidadesOfrece == null ? List.of() : habilidadesOfrece,
-				"habilidadesBusca", habilidadesBusca == null ? List.of() : habilidadesBusca
-		);
+				"habilidadesBusca", habilidadesBusca == null ? List.of() : habilidadesBusca);
 		String mensajeError = validarDato(datosHabilidades);
 		if (mensajeError != null) {
 			PerfilHabilidades perfilTemporal = new PerfilHabilidades();
@@ -252,7 +251,8 @@ public class RegistroController {
 			return "registro/formularioRegistro";
 		}
 
-		PerfilHabilidades perfil = perfilHabilidadesRepository.findByUsuarioId(usuarioId).orElseGet(PerfilHabilidades::new);
+		PerfilHabilidades perfil = perfilHabilidadesRepository.findByUsuarioId(usuarioId)
+				.orElseGet(PerfilHabilidades::new);
 		perfil.setUsuario(usuario);
 		if (esNuevo || perfil.getId() == null) {
 			perfil.agregar(habilidadesOfrece, habilidadesBusca);
@@ -261,7 +261,8 @@ public class RegistroController {
 		}
 		perfilHabilidadesRepository.save(perfil);
 
-		// HU12: Si es edición (esNuevo=false), redirige a sesionConfirmada; si es nuevo, a login
+		// HU12: Si es edición (esNuevo=false), redirige a sesionConfirmada; si es
+		// nuevo, a login
 		if (esNuevo) {
 			return confirmarRegistro(redirectAttributes);
 		} else {
@@ -278,8 +279,8 @@ public class RegistroController {
 	}
 
 	private Optional<String> obtenerErrorValidacionRegistro(String nombre,
-											String password,
-											String correo) {
+			String password,
+			String correo) {
 		Optional<String> errorBasico = validarRegistroBasico(nombre, password, correo);
 		if (errorBasico.isPresent()) {
 			return errorBasico;
