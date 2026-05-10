@@ -6,14 +6,17 @@ com\skillswap\service\MatchService.class
 com\skillswap\SkillSwapApplication.class
 com\skillswap\model\Calificacion.class
 com\skillswap\config\DataInitializer.class
+com\skillswap\controller\ReporteController.class
 com\skillswap\model\PerfilHabilidades.class
 com\skillswap\repository\UsuarioRepository.class
+com\skillswap\model\Reporte.class
 com\skillswap\service\AlgoritmoMatching$ResultadoCompatibilidad.class
 com\skillswap\model\Notificacion.class
 com\skillswap\model\Usuario.class
 com\skillswap\ServletInitializer.class
 com\skillswap\controller\MatchController.class
 com\skillswap\service\ValidadorDisponibilidad.class
+com\skillswap\service\ReporteService.class
 com\skillswap\service\ActualizadorPerfil.class
 com\skillswap\repository\NotificacionRepository.class
 com\skillswap\service\AlgoritmoMatching.class
@@ -25,5 +28,6 @@ com\skillswap\controller\SesionController.class
 com\skillswap\model\Sesion.class
 com\skillswap\repository\SesionRepository.class
 com\skillswap\repository\MatchRepository.class
+com\skillswap\repository\ReporteRepository.class
 com\skillswap\repository\PerfilHabilidadesRepository.class
 com\skillswap\controller\CalificacionController.class

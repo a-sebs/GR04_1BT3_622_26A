@@ -1,0 +1,43 @@
+package com.skillswap.controller;
+
+import com.skillswap.model.Reporte;
+import com.skillswap.service.ReporteService;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+@Controller
+public class ReporteController {
+
+    private final ReporteService reporteService;
+
+    public ReporteController(ReporteService reporteService) {
+        this.reporteService = reporteService;
+    }
+
+    @PostMapping("/reporte/guardar")
+    public String guardarReporte(
+            @RequestParam("motivo") String motivo,
+            @RequestParam(value = "descripcion", required = false) String descripcion,
+            @RequestParam("idUsuarioReportante") Long idUsuarioReportante,
+            @RequestParam("idUsuarioReportado") Long idUsuarioReportado,
+            RedirectAttributes redirectAttributes) {
+
+        Reporte reporte = new Reporte();
+        reporte.setMotivo(motivo);
+        reporte.setDescripcion(descripcion);
+        reporte.setIdUsuarioReportante(idUsuarioReportante);
+        reporte.setIdUsuarioReportado(idUsuarioReportado);
+
+        try {
+            reporteService.guardar(reporte);
+            redirectAttributes.addFlashAttribute(
+                    "mensajeExito", "Reporte enviado correctamente.");
+            return "redirect:/";
+        } catch (IllegalArgumentException ex) {
+            redirectAttributes.addFlashAttribute("mensajeError", ex.getMessage());
+            return "redirect:/reporte/nuevo";
+        }
+    }
+}
