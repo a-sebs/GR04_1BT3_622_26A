@@ -37,3 +37,4 @@ public class Reporte {
     @Column(nullable = false, updatable = false)
     private LocalDateTime fecha;
 }
+

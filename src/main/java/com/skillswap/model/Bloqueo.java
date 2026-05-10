@@ -32,3 +32,4 @@ public class Bloqueo {
         this.idBloqueado = idBloqueado;
     }
 }
+
