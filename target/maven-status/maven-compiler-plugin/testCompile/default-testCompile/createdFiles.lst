@@ -4,6 +4,7 @@ com\skillswap\service\ReporteServiceTest.class
 com\skillswap\service\NotificacionServiceTest.class
 com\skillswap\Gr041Bt362226AApplicationTests.class
 com\skillswap\model\ModificarUsuarioTest.class
+com\skillswap\model\PerfilHabilidadesTest.class
 com\skillswap\controller\SesionControlTest.class
 com\skillswap\service\RecuperacionServiceTest.class
 com\skillswap\service\BloqueoServiceTest.class
