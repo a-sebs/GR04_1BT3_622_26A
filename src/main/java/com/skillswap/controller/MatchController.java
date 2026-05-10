@@ -81,7 +81,7 @@ public String mostrarResultados(Model model, HttpSession session) {
     return "match/listaMatches";
 }
 	@GetMapping("/detalle/{matchId}")
-	public String mostrarDetalleDelPerfil(@PathVariable Long matchId, Model model, HttpSession session) {
+	public String mostrarDetalleDelPerfil(@PathVariable("matchId") Long matchId, Model model, HttpSession session) {
 		Long usuarioId = obtenerUsuarioEnSesion(session);
 		if (usuarioId == null) {
 			return "redirect:/login";
@@ -99,7 +99,7 @@ public String mostrarResultados(Model model, HttpSession session) {
 	}
 
 	@GetMapping("/detalle-busqueda/{matchId}")
-	public String mostrarDetalleDelPerfilBusqueda(@PathVariable Long matchId, Model model, HttpSession session) {
+	public String mostrarDetalleDelPerfilBusqueda(@PathVariable("matchId") Long matchId, Model model, HttpSession session) {
 		Long usuarioId = obtenerUsuarioEnSesion(session);
 		if (usuarioId == null) {
 			return "redirect:/login";

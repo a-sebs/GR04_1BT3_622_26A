@@ -11,6 +11,9 @@ import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "reportes")
@@ -19,7 +22,8 @@ import lombok.Setter;
 // @NoArgsConstructor
 public class Reporte {
 
-    private static final int MAX_DESCRIPCION = 500;
+    private static final int MAX_DESCRIPCION = 250;
+
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

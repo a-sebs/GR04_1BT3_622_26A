@@ -72,7 +72,7 @@ public class RegistroController {
 	}
 
 	@GetMapping("/perfil/{usuarioId}")
-	public String mostrarFormularioPerfil(@PathVariable Long usuarioId, Model model) {
+	public String mostrarFormularioPerfil(@PathVariable("usuarioId") Long usuarioId, Model model) {
 		if (usuarioRepository.findById(usuarioId).isEmpty()) {
 			model.addAttribute("error", "Usuario no encontrado.");
 			cargarAtributosBase(model);
@@ -87,7 +87,7 @@ public class RegistroController {
 
 	@PostMapping("/perfil/{usuarioId}/agregar")
 	@Transactional
-	public String agregarPerfil(@PathVariable Long usuarioId,
+	public String agregarPerfil(@PathVariable("usuarioId") Long usuarioId,
 			@RequestParam(value = "habilidadesOfrece", required = false) List<String> habilidadesOfrece,
 			@RequestParam(value = "habilidadesBusca", required = false) List<String> habilidadesBusca,
 			Model model,
@@ -97,7 +97,7 @@ public class RegistroController {
 
 	@PostMapping("/perfil/{usuarioId}/editar")
 	@Transactional
-	public String editarPerfil(@PathVariable Long usuarioId,
+	public String editarPerfil(@PathVariable("usuarioId") Long usuarioId,
 			@RequestParam(value = "habilidadesOfrece", required = false) List<String> habilidadesOfrece,
 			@RequestParam(value = "habilidadesBusca", required = false) List<String> habilidadesBusca,
 			Model model,
@@ -107,7 +107,7 @@ public class RegistroController {
 
 	@PostMapping("/actualizar-usuario/{usuarioId}")
 	@Transactional
-	public String actualizarInformacion(@PathVariable Long usuarioId,
+	public String actualizarInformacion(@PathVariable("usuarioId") Long usuarioId,
 			@RequestParam("nombre") String nombre,
 			@RequestParam("correo") String correo,
 			Model model,
@@ -141,7 +141,7 @@ public class RegistroController {
 
 	@PostMapping("/perfil/{usuarioId}/eliminar")
 	@Transactional
-	public String eliminarPerfil(@PathVariable Long usuarioId,
+	public String eliminarPerfil(@PathVariable("usuarioId") Long usuarioId,
 			RedirectAttributes redirectAttributes) {
 		PerfilHabilidades perfil = perfilHabilidadesRepository.findByUsuarioId(usuarioId).orElse(null);
 		if (perfil != null) {
@@ -153,7 +153,7 @@ public class RegistroController {
 	}
 
 	@GetMapping("/editar/{id}")
-	public String mostrarFormularioEditarPerfil(@PathVariable Long id, Model model) {
+	public String mostrarFormularioEditarPerfil(@PathVariable("id") Long id, Model model) {
 		Usuario usuario = usuarioRepository.findById(id).orElse(null);
 		if (usuario == null) {
 			model.addAttribute("error", "Usuario no encontrado.");

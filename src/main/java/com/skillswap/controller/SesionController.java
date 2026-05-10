@@ -91,7 +91,7 @@ public class SesionController {
 	}
 
 	@GetMapping("/sesion/agenda/{matchId}")
-	public String agendarSesion(@PathVariable Long matchId, Model model, HttpSession session) {
+	public String agendarSesion(@PathVariable("matchId") Long matchId, Model model, HttpSession session) {
 		Long usuarioId = obtenerUsuarioEnSesion(session);
 		if (usuarioId == null) {
 			return "redirect:/login";
@@ -107,7 +107,7 @@ public class SesionController {
 	}
 
 	@GetMapping("/sesion/agenda-busqueda/{matchId}")
-	public String agendarSesionBusqueda(@PathVariable Long matchId, Model model, HttpSession session) {
+	public String agendarSesionBusqueda(@PathVariable("matchId") Long matchId, Model model, HttpSession session) {
 		Long usuarioId = obtenerUsuarioEnSesion(session);
 		if (usuarioId == null) {
 			return "redirect:/login";
@@ -124,7 +124,7 @@ public class SesionController {
 
 	@PostMapping("/sesion/agenda/{matchId}")
 	@Transactional
-	public String confirmarSesion(@PathVariable Long matchId,
+	public String confirmarSesion(@PathVariable("matchId") Long matchId,
 			@RequestParam("fecha") String fecha,
 			@RequestParam("hora") String hora,
 			@RequestParam("mensaje") String mensaje,
@@ -170,7 +170,7 @@ public class SesionController {
 	}
 
 	@GetMapping("/sesion/confirmada/{sesionId}")
-	public String mostrarConfirmacion(@PathVariable String sesionId, Model model, HttpSession session) {
+	public String mostrarConfirmacion(@PathVariable("sesionId") String sesionId, Model model, HttpSession session) {
 		return presentarDetallesSesion(sesionId, model, session);
 	}
 
@@ -201,7 +201,7 @@ public class SesionController {
 
 	@PostMapping("/sesion/finalizar/{sesionId}")
 	@Transactional
-	public String finalizarSesion(@PathVariable String sesionId,
+	public String finalizarSesion(@PathVariable("sesionId") String sesionId,
 			HttpSession session,
 			RedirectAttributes redirectAttributes) {
 		return aceptarSesion(sesionId, session, redirectAttributes);
@@ -384,7 +384,7 @@ public class SesionController {
 	}
 
 	@GetMapping("/login/restablecer/{id}")
-	public String mostrarActualizarPassword(@PathVariable Long id, Model model) {
+	public String mostrarActualizarPassword(@PathVariable("id") Long id, Model model) {
 		Usuario usuario = usuarioRepository.findById(id).orElse(null);
 		if (usuario == null) {
 			return "redirect:/login";
