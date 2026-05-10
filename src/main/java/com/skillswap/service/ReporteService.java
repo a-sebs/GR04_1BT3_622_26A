@@ -19,49 +19,32 @@ public class ReporteService {
 
     @Transactional
     public Reporte guardar(Reporte reporte) {
-        reporte.validar();                        // delega validacion al modelo
-        return reporteRepository.save(reporte);   // persiste la entidad
-    }
-
-    @Transactional
-    public Reporte crearReporte(Long reportadoId, String motivo, String descripcion) {
-    public Reporte crearReporte(Long reportanteId, Long reportadoId, String motivo, String descripcion) {
-        validarReportanteId(reportanteId);
-        validarReportadoId(reportadoId);
-        validarMotivo(motivo);
-        validarDescripcion(descripcion);
-
-        Usuario reportante = usuarioRepository.findById(reportanteId)
-            .orElseThrow(() -> new IllegalArgumentException("El usuario reportante no existe."));
-        Usuario reportado = usuarioRepository.findById(reportadoId)
-            .orElseThrow(() -> new IllegalArgumentException("El usuario reportado no existe."));
-
-        Reporte reporte = new Reporte();
-        reporte.setReportadoId(reportadoId);
-        reporte.setMotivo(motivo);
-        reporte.setReportante(reportante);
-        reporte.setReportado(reportado);
-        reporte.setMotivo(motivo.trim());
-        reporte.setDescripcion(descripcion);
+        // La validación principal está en el modelo Reporte (validar)
         reporte.validar();
         return reporteRepository.save(reporte);
     }
-}
 
-    private void validarReportanteId(Long reportanteId) {
+    @Transactional
+    public Reporte crearReporte(Long reportanteId, Long reportadoId, String motivo, String descripcion) {
         if (reportanteId == null) {
             throw new IllegalArgumentException("El id del usuario reportante es obligatorio.");
         }
-    }
-
-    private void validarReportadoId(Long reportadoId) {
         if (reportadoId == null) {
             throw new IllegalArgumentException("El id del usuario reportado es obligatorio.");
         }
-    }
 
-    private void validarMotivo(String motivo) {
-        if (motivo == null || motivo.isBlank()) {
-            throw new IllegalArgumentException("El motivo es obligatorio.");
-        }
+        Reporte reporte = new Reporte();
+        reporte.setMotivo(motivo != null ? motivo.trim() : null);
+        reporte.setDescripcion(descripcion);
+        reporte.validar();
+
+        Usuario reportante = usuarioRepository.findById(reportanteId)
+                .orElseThrow(() -> new IllegalArgumentException("El usuario reportante no existe."));
+        Usuario reportado = usuarioRepository.findById(reportadoId)
+                .orElseThrow(() -> new IllegalArgumentException("El usuario reportado no existe."));
+
+        reporte.setReportante(reportante);
+        reporte.setReportado(reportado);
+        return reporteRepository.save(reporte);
     }
+}
