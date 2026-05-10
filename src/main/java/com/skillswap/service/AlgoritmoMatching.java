@@ -2,11 +2,11 @@ package com.skillswap.service;
 
 import com.skillswap.model.PerfilHabilidades;
 import com.skillswap.repository.PerfilHabilidadesRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.stream.Collectors;
 import java.util.List;
 import java.util.Set;
 
@@ -16,8 +16,13 @@ public class AlgoritmoMatching {
 	private Float umbralMinimo = 0.1f;
 	private String criterioOrden = "desc";
 
-	@Autowired(required = false)
-	private PerfilHabilidadesRepository perfilHabilidadesRepository;
+	// R1
+	private final PerfilHabilidadesRepository perfilHabilidadesRepository;
+
+	// R1
+	public AlgoritmoMatching(PerfilHabilidadesRepository perfilHabilidadesRepository) {
+		this.perfilHabilidadesRepository = perfilHabilidadesRepository;
+	}
 
 	public float calcularCompatibilidad(PerfilHabilidades p1, PerfilHabilidades p2) {
 		if (p1 == null || p2 == null) {
@@ -66,19 +71,12 @@ public class AlgoritmoMatching {
 	public List<ResultadoCompatibilidad> calcularCompatibilidades(PerfilHabilidades perfilActual,
 												  List<PerfilHabilidades> candidatos,
 												  String filtroHabilidad) {
-		List<ResultadoCompatibilidad> resultados = new ArrayList<>();
-		for (PerfilHabilidades candidato : candidatos) {
-			if (perfilActual.getUsuario().getId().equals(candidato.getUsuario().getId())) {
-				continue;
-			}
-			if (!candidato.coincideConFiltro(filtroHabilidad)) {
-				continue;
-			}
-			float puntaje = calcularCompatibilidad(perfilActual, candidato);
-			if (umbralMinimo == null || puntaje >= umbralMinimo) {
-				resultados.add(new ResultadoCompatibilidad(candidato, puntaje));
-			}
-		}
+		List<ResultadoCompatibilidad> resultados = candidatos.stream()
+				.filter(candidato -> !esMismoUsuario(perfilActual, candidato))
+				.filter(candidato -> candidato.coincideConFiltro(filtroHabilidad))
+				.map(candidato -> new ResultadoCompatibilidad(candidato, calcularCompatibilidad(perfilActual, candidato)))
+				.filter(resultado -> cumpleUmbral(resultado.puntaje()))
+				.collect(Collectors.toList());
 		List ordenados = ordenarResultados(resultados);
 		List<ResultadoCompatibilidad> salida = new ArrayList<>();
 		for (Object elemento : ordenados) {
@@ -87,15 +85,33 @@ public class AlgoritmoMatching {
 		return salida;
 	}
 
+	// R2
+	private boolean esMismoUsuario(PerfilHabilidades a, PerfilHabilidades b) {
+		return a.getUsuario().getId().equals(b.getUsuario().getId());
+	}
+
+	// R2
+	private boolean cumpleUmbral(float puntaje) {
+		return umbralMinimo == null || puntaje >= umbralMinimo;
+	}
+
 	private long contarCoincidencias(Set<String> origen, Set<String> destino) {
 		if (origen == null || destino == null || origen.isEmpty() || destino.isEmpty()) {
 			return 0;
 		}
-		return origen.stream()
+		Set<String> origenNormalizado = normalizar(origen);
+		Set<String> destinoNormalizado = normalizar(destino);
+		return origenNormalizado.stream()
+				.filter(destinoNormalizado::contains)
+				.count();
+	}
+
+	// R3
+	private Set<String> normalizar(Set<String> habilidades) {
+		return habilidades.stream()
 				.map(String::trim)
 				.map(String::toLowerCase)
-				.filter(h -> destino.stream().map(String::trim).map(String::toLowerCase).anyMatch(h::equals))
-				.count();
+				.collect(Collectors.toSet());
 	}
 
 	public record ResultadoCompatibilidad(PerfilHabilidades perfil, float puntaje) {
