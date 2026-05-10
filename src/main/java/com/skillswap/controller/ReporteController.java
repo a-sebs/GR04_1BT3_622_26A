@@ -32,6 +32,7 @@ public class ReporteController {
     public String guardarReporte(
             @RequestParam("motivo") String motivo,
             @RequestParam(value = "descripcion", required = false) String descripcion,
+            @RequestParam("idUsuarioReportante") Long idUsuarioReportante,
             @RequestParam("idUsuarioReportado") Long idUsuarioReportado,
             HttpSession session,
             RedirectAttributes redirectAttributes) {
