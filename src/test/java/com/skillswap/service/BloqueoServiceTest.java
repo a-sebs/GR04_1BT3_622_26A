@@ -45,8 +45,8 @@ class BloqueoServiceTest {
         // Assert
         verify(bloqueoRepository, times(1)).save(captor.capture());
         Bloqueo bloqueo = captor.getValue();
-        assertEquals(BLOQUEADOR_ID, bloqueo.getBloqueadorId());
-        assertEquals(BLOQUEADO_ID, bloqueo.getBloqueadoId());
+        assertEquals(BLOQUEADOR_ID, bloqueo.getIdBloqueador());
+        assertEquals(BLOQUEADO_ID, bloqueo.getIdBloqueado());
     }
 
     @Test
