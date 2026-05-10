@@ -6,46 +6,30 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "bloqueos")
+@Getter
+@Setter
+@NoArgsConstructor
 public class Bloqueo {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long idBloqueo;
+    private Long id;
 
-    @Column(nullable = false)
-    private Long bloqueadorId;
+    @Column(name = "id_bloqueador", nullable = false)
+    private Long idBloqueador;
 
-    @Column(nullable = false)
-    private Long bloqueadoId;
+    @Column(name = "id_bloqueado", nullable = false)
+    private Long idBloqueado;
 
-    public Bloqueo() {
-    }
-
-    public Long getIdBloqueo() {
-        return idBloqueo;
-    }
-
-    public void setIdBloqueo(Long idBloqueo) {
-        this.idBloqueo = idBloqueo;
-    }
-
-    public Long getBloqueadorId() {
-        return bloqueadorId;
-    }
-
-    public void setBloqueadorId(Long bloqueadorId) {
-        this.bloqueadorId = bloqueadorId;
-    }
-
-    public Long getBloqueadoId() {
-        return bloqueadoId;
-    }
-
-    public void setBloqueadoId(Long bloqueadoId) {
-        this.bloqueadoId = bloqueadoId;
+    public Bloqueo(Long idBloqueador, Long idBloqueado) {
+        this.idBloqueador = idBloqueador;
+        this.idBloqueado = idBloqueado;
     }
 }
 
