@@ -53,8 +53,8 @@
         </c:if>
 
         <div class="actions footer-actions">
-            <a class="btn btn-secondary" href="${pageContext.request.contextPath}/match/lista">Volver atras</a>
-            <a class="btn btn-secondary" href="${pageContext.request.contextPath}/sesion/confirmada">Ir a sesion confirmada</a>
+            <a class="btn btn-secondary" href="${pageContext.request.contextPath}/match/lista">Volver a mis matches</a>
+            <a class="btn btn-secondary" href="${pageContext.request.contextPath}/sesion/confirmada">Volver al menú principal</a>
         </div>
     </div>
 </div>

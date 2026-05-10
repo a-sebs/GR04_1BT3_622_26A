@@ -9,9 +9,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ReporteService {
-
-    private static final int MAX_LONGITUD_DESCRIPCION = 250;
-
     private final ReporteRepository reporteRepository;
     private final UsuarioRepository usuarioRepository;
 
@@ -21,6 +18,13 @@ public class ReporteService {
     }
 
     @Transactional
+    public Reporte guardar(Reporte reporte) {
+        reporte.validar();                        // delega validacion al modelo
+        return reporteRepository.save(reporte);   // persiste la entidad
+    }
+
+    @Transactional
+    public Reporte crearReporte(Long reportadoId, String motivo, String descripcion) {
     public Reporte crearReporte(Long reportanteId, Long reportadoId, String motivo, String descripcion) {
         validarReportanteId(reportanteId);
         validarReportadoId(reportadoId);
@@ -33,12 +37,16 @@ public class ReporteService {
             .orElseThrow(() -> new IllegalArgumentException("El usuario reportado no existe."));
 
         Reporte reporte = new Reporte();
+        reporte.setReportadoId(reportadoId);
+        reporte.setMotivo(motivo);
         reporte.setReportante(reportante);
         reporte.setReportado(reportado);
         reporte.setMotivo(motivo.trim());
         reporte.setDescripcion(descripcion);
+        reporte.validar();
         return reporteRepository.save(reporte);
     }
+}
 
     private void validarReportanteId(Long reportanteId) {
         if (reportanteId == null) {
@@ -57,14 +65,3 @@ public class ReporteService {
             throw new IllegalArgumentException("El motivo es obligatorio.");
         }
     }
-
-    private void validarDescripcion(String descripcion) {
-        if (descripcion == null) {
-            throw new IllegalArgumentException("La descripcion es obligatoria.");
-        }
-        if (descripcion.length() > MAX_LONGITUD_DESCRIPCION) {
-            throw new IllegalArgumentException("La descripcion no puede superar los 250 caracteres.");
-        }
-    }
-}
-

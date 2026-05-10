@@ -46,8 +46,7 @@
         </div>
 
         <div class="actions footer-actions">
-            <a class="btn btn-secondary" href="${pageContext.request.contextPath}/match/explorar">Volver a explorar</a>
-            <a class="btn btn-secondary" href="${pageContext.request.contextPath}/sesion/confirmada">Volver atras</a>
+            <a class="btn btn-secondary" href="${pageContext.request.contextPath}/sesion/confirmada">Volver al menú principal</a>
         </div>
     </div>
 </div>
