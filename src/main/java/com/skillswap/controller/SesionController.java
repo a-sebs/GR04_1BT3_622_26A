@@ -37,10 +37,10 @@ public class SesionController {
 	private final ValidadorDatos validadorDatos;
 
 	public SesionController(UsuarioRepository usuarioRepository,
-						 MatchRepository matchRepository,
-						 SesionRepository sesionRepository,
-						 ValidadorDisponibilidad validadorDisponibilidad,
-						 ValidadorDatos validadorDatos) {
+			MatchRepository matchRepository,
+			SesionRepository sesionRepository,
+			ValidadorDisponibilidad validadorDisponibilidad,
+			ValidadorDatos validadorDatos) {
 		this.usuarioRepository = usuarioRepository;
 		this.matchRepository = matchRepository;
 		this.sesionRepository = sesionRepository;
@@ -66,9 +66,9 @@ public class SesionController {
 
 	@PostMapping("/login")
 	public String iniciarSesion(@RequestParam("nombre") String nombre,
-							 @RequestParam("password") String password,
-							 HttpSession session,
-							 RedirectAttributes redirectAttributes) {
+			@RequestParam("password") String password,
+			HttpSession session,
+			RedirectAttributes redirectAttributes) {
 		var usuario = usuarioRepository.findByNombreIgnoreCaseAndPassword(nombre.trim(), password).orElse(null);
 		if (usuario == null) {
 			redirectAttributes.addFlashAttribute("error", "Credenciales inválidas.");
@@ -125,12 +125,12 @@ public class SesionController {
 	@PostMapping("/sesion/agenda/{matchId}")
 	@Transactional
 	public String confirmarSesion(@PathVariable Long matchId,
-						  @RequestParam("fecha") String fecha,
-						  @RequestParam("hora") String hora,
-						  @RequestParam("mensaje") String mensaje,
-						  Model model,
-						  HttpSession session,
-						  RedirectAttributes redirectAttributes) {
+			@RequestParam("fecha") String fecha,
+			@RequestParam("hora") String hora,
+			@RequestParam("mensaje") String mensaje,
+			Model model,
+			HttpSession session,
+			RedirectAttributes redirectAttributes) {
 		Long usuarioId = obtenerUsuarioEnSesion(session);
 		if (usuarioId == null) {
 			return "redirect:/login";
@@ -150,7 +150,8 @@ public class SesionController {
 		}
 
 		if (!verificarDisponibilidad(match, fechaSeleccionada, hora)) {
-			cargarAgenda(model, match, fecha, hora, mensaje, "El horario no está disponible. Seleccione otra fecha u hora.");
+			cargarAgenda(model, match, fecha, hora, mensaje,
+					"El horario no está disponible. Seleccione otra fecha u hora.");
 			return "sesion/pantallaAgenda";
 		}
 
@@ -201,12 +202,13 @@ public class SesionController {
 	@PostMapping("/sesion/finalizar/{sesionId}")
 	@Transactional
 	public String finalizarSesion(@PathVariable String sesionId,
-						  HttpSession session,
-						  RedirectAttributes redirectAttributes) {
+			HttpSession session,
+			RedirectAttributes redirectAttributes) {
 		return aceptarSesion(sesionId, session, redirectAttributes);
 	}
 
-	// Método sobrecargado para lógica de negocio pura (usado por tests y lógica interna)
+	// Método sobrecargado para lógica de negocio pura (usado por tests y lógica
+	// interna)
 	public void aceptarSesion(String sesionId) {
 		if (sesionId == null || sesionId.isBlank()) {
 			throw new IllegalArgumentException("El ID de sesión no puede estar vacío.");
@@ -221,14 +223,15 @@ public class SesionController {
 
 	// Método para confirmar decisión pendiente (usado por tests)
 	public void confirmarDesision() {
-		// Lógica para confirmar decisión - puede ser extendido según requieran los tests
+		// Lógica para confirmar decisión - puede ser extendido según requieran los
+		// tests
 		throw new IllegalStateException("No hay decisión pendiente para confirmar.");
 	}
 
 	// Método original con parámetros HTTP (usado por controlador web)
 	public String aceptarSesion(String sesionId,
-					 HttpSession session,
-					 RedirectAttributes redirectAttributes) {
+			HttpSession session,
+			RedirectAttributes redirectAttributes) {
 		Long usuarioId = obtenerUsuarioEnSesion(session);
 		if (usuarioId == null) {
 			return "redirect:/login";
@@ -267,8 +270,6 @@ public class SesionController {
 		return sesion;
 	}
 
-
-
 	public void actualizarBaseDeDatos(Sesion sesion) {
 		sesion.actualizar();
 		sesionRepository.save(sesion);
@@ -279,8 +280,7 @@ public class SesionController {
 				match.getUsuarioSolicitante().getId(),
 				match.getUsuarioMatch().getId(),
 				fecha,
-				hora
-		);
+				hora);
 	}
 
 	private void cargarAgenda(Model model, Match match, String fecha, String hora, String mensaje, String error) {
@@ -337,7 +337,8 @@ public class SesionController {
 	// ========== MÉTODO PARA PROCESAR SOLICITUD DE SESIÓN ==========
 
 	/**
-	 * Procesa una solicitud de sesión, actualizando su estado a ACEPTADA o RECHAZADA.
+	 * Procesa una solicitud de sesión, actualizando su estado a ACEPTADA o
+	 * RECHAZADA.
 	 * 
 	 * @param sesionId ID de la sesión a procesar
 	 * @param aceptada true para ACEPTADA, false para RECHAZADA
@@ -347,7 +348,7 @@ public class SesionController {
 		if (sesionId == null || sesionId.isBlank()) {
 			return;
 		}
-		
+
 		sesionRepository.findById(sesionId).ifPresent(sesion -> {
 			String nuevoEstado = aceptada ? "ACEPTADA" : "RECHAZADA";
 			sesion.setEstado(nuevoEstado);
@@ -373,7 +374,7 @@ public class SesionController {
 
 	@PostMapping("/login/verificar")
 	public String verificarCorreo(@RequestParam("correo") String correo,
-								  RedirectAttributes redirectAttributes) {
+			RedirectAttributes redirectAttributes) {
 		Optional<Usuario> usuario = usuarioRepository.findByCorreoIgnoreCase(correo);
 		if (usuario.isEmpty()) {
 			redirectAttributes.addFlashAttribute("error", "El usuario no existe.");
@@ -395,9 +396,9 @@ public class SesionController {
 	@PostMapping("/login/guardar-password")
 	@Transactional
 	public String guardarPassword(@RequestParam("usuarioId") Long usuarioId,
-								  @RequestParam("password") String nuevaPassword,
-								  Model model,
-								  RedirectAttributes redirectAttributes) {
+			@RequestParam("password") String nuevaPassword,
+			Model model,
+			RedirectAttributes redirectAttributes) {
 		Usuario usuario = usuarioRepository.findById(usuarioId).orElse(null);
 		if (usuario == null) {
 			model.addAttribute("error", "Usuario no encontrado.");

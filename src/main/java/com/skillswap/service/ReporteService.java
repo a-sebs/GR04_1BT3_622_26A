@@ -19,34 +19,29 @@ public class ReporteService {
 
     @Transactional
     public Reporte guardar(Reporte reporte) {
-        reporte.validar();                        // delega validacion al modelo
-        return reporteRepository.save(reporte);   // persiste la entidad
+        reporte.validar(); // delega validacion al modelo
+        return reporteRepository.save(reporte); // persiste la entidad
     }
 
     @Transactional
-    public Reporte crearReporte(Long reportadoId, String motivo, String descripcion) {
     public Reporte crearReporte(Long reportanteId, Long reportadoId, String motivo, String descripcion) {
         validarReportanteId(reportanteId);
         validarReportadoId(reportadoId);
         validarMotivo(motivo);
-        validarDescripcion(descripcion);
 
         Usuario reportante = usuarioRepository.findById(reportanteId)
-            .orElseThrow(() -> new IllegalArgumentException("El usuario reportante no existe."));
+                .orElseThrow(() -> new IllegalArgumentException("El usuario reportante no existe."));
         Usuario reportado = usuarioRepository.findById(reportadoId)
-            .orElseThrow(() -> new IllegalArgumentException("El usuario reportado no existe."));
+                .orElseThrow(() -> new IllegalArgumentException("El usuario reportado no existe."));
 
         Reporte reporte = new Reporte();
-        reporte.setReportadoId(reportadoId);
-        reporte.setMotivo(motivo);
         reporte.setReportante(reportante);
         reporte.setReportado(reportado);
         reporte.setMotivo(motivo.trim());
-        reporte.setDescripcion(descripcion);
+        reporte.setDescripcion(descripcion != null ? descripcion.trim() : null);
         reporte.validar();
         return reporteRepository.save(reporte);
     }
-}
 
     private void validarReportanteId(Long reportanteId) {
         if (reportanteId == null) {
@@ -65,3 +60,4 @@ public class ReporteService {
             throw new IllegalArgumentException("El motivo es obligatorio.");
         }
     }
+}

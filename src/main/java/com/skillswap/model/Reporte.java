@@ -12,29 +12,32 @@ import java.time.LocalDateTime;
 @Table(name = "reportes")
 @Getter
 @Setter
-@NoArgsConstructor
+// @NoArgsConstructor
 public class Reporte {
+
+    private static final int MAX_DESCRIPCION = 500;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(optional = false)
-    @JoinColumn(name = "id_reportante", nullable = false)
+    @JoinColumn(name = "reportante_id", nullable = false)
     private Usuario reportante;
 
     @ManyToOne(optional = false)
-    @JoinColumn(name = "id_reportado", nullable = false)
+    @JoinColumn(name = "reportado_id", nullable = false)
     private Usuario reportado;
 
     @Column(nullable = false, length = 100)
     private String motivo;
 
-    @Column(nullable = false, length = 500)
+    @Column(nullable = true, length = 500)
     private String descripcion;
 
     public Reporte() {
     }
+
     public void validar() {
         if (motivo == null || motivo.trim().isEmpty()) {
             throw new IllegalArgumentException("El motivo es obligatorio.");
@@ -44,39 +47,8 @@ public class Reporte {
                     "La descripcion no puede superar los " + MAX_DESCRIPCION + " caracteres.");
         }
     }
-    public Long getIdReporte() {
-        return idReporte;
-    }
 
-    public void setIdReporte(Long idReporte) {
-        this.idReporte = idReporte;
-    }
-
-    public Long getReportadoId() {
-        return reportadoId;
-    }
-
-    public void setReportadoId(Long reportadoId) {
-        this.reportadoId = reportadoId;
-    }
-
-    public String getMotivo() {
-        return motivo;
-    }
-
-    public void setMotivo(String motivo) {
-        this.motivo = motivo;
-    }
-
-    public String getDescripcion() {
-        return descripcion;
-    }
-
-    public void setDescripcion(String descripcion) {
-        this.descripcion = descripcion;
-    }
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private LocalDateTime fecha;
 }
-

@@ -4,6 +4,7 @@ import com.skillswap.model.Match;
 import com.skillswap.model.PerfilHabilidades;
 import com.skillswap.repository.MatchRepository;
 import com.skillswap.repository.PerfilHabilidadesRepository;
+import com.skillswap.repository.BloqueoRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,14 +16,19 @@ public class MatchService {
     private final MatchRepository matchRepository;
     private final PerfilHabilidadesRepository perfilHabilidadesRepository;
     private final AlgoritmoMatching algoritmoMatching;
+    private final BloqueoRepository bloqueoRepository;
+
     // Inyección de dependencias
     public MatchService(MatchRepository matchRepository,
-                        PerfilHabilidadesRepository perfilHabilidadesRepository,
-                        AlgoritmoMatching algoritmoMatching) {
+            PerfilHabilidadesRepository perfilHabilidadesRepository,
+            AlgoritmoMatching algoritmoMatching,
+            BloqueoRepository bloqueoRepository) {
         this.matchRepository = matchRepository;
         this.perfilHabilidadesRepository = perfilHabilidadesRepository;
         this.algoritmoMatching = algoritmoMatching;
+        this.bloqueoRepository = bloqueoRepository;
     }
+
     @Transactional
     public List<Match> buscarYGuardarMatches(Long usuarioId, String filtroHabilidad, String filtroNombreUsuario) {
         PerfilHabilidades perfilActual = perfilHabilidadesRepository.findByUsuarioId(usuarioId)
@@ -32,6 +38,10 @@ public class MatchService {
                 .filter(perfil -> perfil.getUsuario().getId() != null)
                 .filter(perfil -> !perfil.getUsuario().getId().equals(usuarioId))
                 .filter(perfil -> perfil.coincideConNombreUsuario(filtroNombreUsuario))
+                .filter(perfil -> !bloqueoRepository.existsByIdBloqueadorAndIdBloqueado(usuarioId,
+                        perfil.getUsuario().getId()))
+                .filter(perfil -> !bloqueoRepository.existsByIdBloqueadorAndIdBloqueado(perfil.getUsuario().getId(),
+                        usuarioId))
                 .toList();
         List<AlgoritmoMatching.ResultadoCompatibilidad> puntajes = algoritmoMatching
                 .calcularCompatibilidades(perfilActual, candidatos, filtroHabilidad);
@@ -47,6 +57,7 @@ public class MatchService {
         matchRepository.saveAll(nuevosMatches);
         return matchRepository.findByUsuarioSolicitanteIdOrderByCompatibilidadDesc(usuarioId);
     }
+
     @Transactional(readOnly = true)
     public List<Match> obtenerMatchesDeUsuario(Long usuarioId) {
         return matchRepository.findByUsuarioSolicitanteIdOrderByCompatibilidadDesc(usuarioId);
