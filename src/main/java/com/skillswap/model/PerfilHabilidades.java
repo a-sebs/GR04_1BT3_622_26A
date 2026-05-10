@@ -78,7 +78,6 @@ public boolean coincideConNombreUsuario(String filtroNombreUsuario) {
 	}
 
 	public void editar(Collection<String> ofrece, Collection<String> busca) {
-		validarHabilidadesRequeridas(ofrece, busca);
 		agregar(ofrece, busca);
 	}
 
@@ -99,12 +98,6 @@ public boolean coincideConNombreUsuario(String filtroNombreUsuario) {
 			if (habilidad != null && !habilidad.isBlank()) {
 				destino.add(habilidad.trim());
 			}
-		}
-	}
-
-	private void validarHabilidadesRequeridas(Collection<String> ofrece, Collection<String> busca) {
-		if (ofrece == null || ofrece.isEmpty() || busca == null || busca.isEmpty()) {
-			throw new IllegalArgumentException("Debe seleccionar al menos una habilidad en cada área");
 		}
 	}
 
