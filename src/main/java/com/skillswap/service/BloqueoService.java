@@ -18,9 +18,7 @@ public class BloqueoService {
     public Bloqueo bloquearUsuario(Long bloqueadorId, Long bloqueadoId) {
         validarIds(bloqueadorId, bloqueadoId);
 
-        Bloqueo bloqueo = new Bloqueo();
-        bloqueo.setBloqueadorId(bloqueadorId);
-        bloqueo.setBloqueadoId(bloqueadoId);
+        Bloqueo bloqueo = new Bloqueo(bloqueadorId, bloqueadoId);
         return bloqueoRepository.save(bloqueo);
     }
 
