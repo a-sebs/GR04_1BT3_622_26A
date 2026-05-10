@@ -1,6 +1,5 @@
 package com.skillswap.controller;
 
-import com.skillswap.model.Reporte;
 import com.skillswap.service.ReporteService;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,18 +19,11 @@ public class ReporteController {
     public String guardarReporte(
             @RequestParam("motivo") String motivo,
             @RequestParam(value = "descripcion", required = false) String descripcion,
-            @RequestParam("idUsuarioReportante") Long idUsuarioReportante,
             @RequestParam("idUsuarioReportado") Long idUsuarioReportado,
             RedirectAttributes redirectAttributes) {
 
-        Reporte reporte = new Reporte();
-        reporte.setMotivo(motivo);
-        reporte.setDescripcion(descripcion);
-        reporte.setIdUsuarioReportante(idUsuarioReportante);
-        reporte.setIdUsuarioReportado(idUsuarioReportado);
-
         try {
-            reporteService.guardar(reporte);
+            reporteService.crearReporte(idUsuarioReportado, motivo, descripcion);
             redirectAttributes.addFlashAttribute(
                     "mensajeExito", "Reporte enviado correctamente.");
             return "redirect:/";

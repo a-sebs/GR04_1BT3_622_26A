@@ -7,6 +7,7 @@ com\skillswap\SkillSwapApplication.class
 com\skillswap\repository\BloqueoRepository.class
 com\skillswap\model\Calificacion.class
 com\skillswap\config\DataInitializer.class
+com\skillswap\controller\ReporteController.class
 com\skillswap\model\PerfilHabilidades.class
 com\skillswap\repository\UsuarioRepository.class
 com\skillswap\model\Reporte.class
