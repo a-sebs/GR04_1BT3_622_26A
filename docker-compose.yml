@@ -13,7 +13,7 @@ services:
     restart: always
 
   app:
-    image: aeljakal/skillswap-app:v1.3
+    image: aeljakal/skillswap-app:v1.4
     container_name: skillswap_app_container
     depends_on:
       - database
