@@ -28,7 +28,7 @@ services:
 
   jenkins-service:
     image: jenkins/jenkins:lts
-    container_name: jenkins-container
+    container_name: jenkins-proyecto
     ports:
       - "9090:8080"
       - "50000:50000"
