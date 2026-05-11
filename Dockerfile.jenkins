@@ -1,11 +1,18 @@
 FROM jenkins/jenkins:lts
 
-FROM jenkins/jenkins:lts
+USER root
+
+# Instalar Maven, Docker y Docker Compose (Plugin V2)
+RUN apt-get update && apt-get install -y \
+    maven \
+    docker.io \
+    docker-compose-v2 \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Instalar plugins para que el dashboard ya esté configurado
+RUN jenkins-plugin-cli --plugins "maven-plugin docker-workflow docker-plugin git"
+
+# Desactivar el asistente de configuración
+ENV JAVA_OPTS="-Djenkins.install.runSetupWizard=false"
 
 USER root
-# Instalar Docker CLI y Docker Compose dentro de la imagen (Debian)
-RUN apt-get update && apt-get install -y docker.io docker-compose-v2
-
-# Plugins y desactivar wizard
-RUN jenkins-plugin-cli --plugins "maven-plugin docker-workflow docker-plugin git"
-ENV JAVA_OPTS="-Djenkins.install.runSetupWizard=false"
