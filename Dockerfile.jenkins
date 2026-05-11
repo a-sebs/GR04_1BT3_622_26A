@@ -2,17 +2,16 @@ FROM jenkins/jenkins:lts
 
 USER root
 
-# Instalar Maven, Docker y Docker Compose (Plugin V2)
-RUN apt-get update && apt-get install -y \
-    maven \
-    docker.io \
-    docker-compose-v2 \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+# 1. Instalar Maven y Git de forma nativa
+RUN apt-get update && apt-get install -y maven git docker.io && apt-get clean
 
-# Instalar plugins para que el dashboard ya esté configurado
-RUN jenkins-plugin-cli --plugins "maven-plugin docker-workflow docker-plugin git"
+# 2. Desbloquear Git para que no de errores de "safe directory"
+RUN git config --global --add safe.directory "*"
 
-# Desactivar el asistente de configuración
+# 3. Instalar plugins esenciales (Git, Maven, Docker) para que ya aparezcan las opciones
+RUN jenkins-plugin-cli --plugins "git maven-plugin workflow-aggregator docker-workflow"
+
+# 4. Saltarse el asistente de configuración
 ENV JAVA_OPTS="-Djenkins.install.runSetupWizard=false"
 
 USER root
