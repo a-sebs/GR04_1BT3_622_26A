@@ -26,22 +26,5 @@ services:
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
     restart: always
 
-  jenkins-service:
-    build:
-      context: .
-      dockerfile: Dockerfile.jenkins
-    container_name: jenkins-proyecto
-    user: root
-    environment:
-      - JAVA_OPTS=-Djenkins.install.runSetupWizard=false
-    ports:
-      - "9090:8080"
-      - "50000:50000"
-    volumes:
-      - jenkins-data:/var/jenkins_home
-      - /var/run/docker.sock:/var/run/docker.sock
-    restart: always
-
 volumes:
   postgres_data:
-  jenkins-data:
