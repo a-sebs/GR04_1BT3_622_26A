@@ -1,0 +1,11 @@
+FROM jenkins/jenkins:lts
+
+FROM jenkins/jenkins:lts
+
+USER root
+# Instalar Docker CLI y Docker Compose dentro de la imagen (Debian)
+RUN apt-get update && apt-get install -y docker.io docker-compose-v2
+
+# Plugins y desactivar wizard
+RUN jenkins-plugin-cli --plugins "maven-plugin docker-workflow docker-plugin git"
+ENV JAVA_OPTS="-Djenkins.install.runSetupWizard=false"
