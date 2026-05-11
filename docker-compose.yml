@@ -27,8 +27,13 @@ services:
     restart: always
 
   jenkins-service:
-    image: jenkins/jenkins:lts
+    build:
+      context: .
+      dockerfile: Dockerfile.jenkins
     container_name: jenkins-proyecto
+    user: root
+    environment:
+      - JAVA_OPTS=-Djenkins.install.runSetupWizard=false
     ports:
       - "9090:8080"
       - "50000:50000"
