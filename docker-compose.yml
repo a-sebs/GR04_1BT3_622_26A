@@ -26,7 +26,7 @@ services:
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
     restart: always
 
-  jjenkins-service:
+  jenkins-service:
     build:
       context: .
       dockerfile: Dockerfile.jenkins
