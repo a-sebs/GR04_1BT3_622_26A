@@ -33,7 +33,7 @@
             
             <div class="field">
                 <label for="descripcion">Descripción</label>
-                <textarea id="descripcion" name="descripcion" maxlength="250" rows="4" required></textarea>
+                <textarea id="descripcion" name="descripcion" maxlength="250" rows="4"></textarea>
             </div>
             
             <div class="actions">
