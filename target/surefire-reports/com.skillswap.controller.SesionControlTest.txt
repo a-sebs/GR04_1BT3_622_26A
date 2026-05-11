@@ -1,4 +1,4 @@
 -------------------------------------------------------------------------------
 Test set: com.skillswap.controller.SesionControlTest
 -------------------------------------------------------------------------------
-Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.140 s -- in com.skillswap.controller.SesionControlTest
+Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.123 s -- in com.skillswap.controller.SesionControlTest
