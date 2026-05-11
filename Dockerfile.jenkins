@@ -1,0 +1,17 @@
+FROM jenkins/jenkins:lts
+
+USER root
+
+# 1. Instalar Maven y Git de forma nativa
+RUN apt-get update && apt-get install -y maven git docker.io && apt-get clean
+
+# 2. Desbloquear Git para que no de errores de "safe directory"
+RUN git config --global --add safe.directory "*"
+
+# 3. Instalar plugins esenciales (Git, Maven, Docker) para que ya aparezcan las opciones
+RUN jenkins-plugin-cli --plugins "git maven-plugin workflow-aggregator docker-workflow"
+
+# 4. Saltarse el asistente de configuración
+ENV JAVA_OPTS="-Djenkins.install.runSetupWizard=false"
+
+USER root
