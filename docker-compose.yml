@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   database:
-    image: postgres:18
+    image: postgres:16
     container_name: skillswap_db_container
     environment:
       POSTGRES_DB: skillswap_db
